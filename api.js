@@ -104,6 +104,19 @@ async function apiChangePassword(email, currentPassword, newPassword) {
   return await apiPost("/auth/change-password", { email, currentPassword, newPassword });
 }
 
+
+async function apiClockIn(employeeId, modality = "PRESENCIAL") {
+  return await apiPost('/attendance/clock-in?employeeId=' + encodeURIComponent(employeeId) + '&modality=' + encodeURIComponent(modality), { employeeId, modality });
+}
+
+async function apiClockOut(employeeId) {
+  return await apiPost('/attendance/clock-out?employeeId=' + encodeURIComponent(employeeId), { employeeId });
+}
+
+async function apiGetTodayAttendance(employeeId) {
+  return await apiGet('/attendance/today?employeeId=' + encodeURIComponent(employeeId));
+}
+
 async function apiStartBreak(employeeId, breakType, minutes) {
   return await apiPost(`/attendance/break/start?employeeId=${encodeURIComponent(employeeId)}&breakType=${encodeURIComponent(breakType)}&minutes=${encodeURIComponent(minutes)}`);
 }

@@ -662,7 +662,8 @@ function handleGlobalSearch() {
 
 // Consulta datos del asistente y la jornada al backend
 async function loadDashboardData() {
-  const data = await apiGet("/dashboard/assistant", "dashboard");
+  const empId = (AppState.currentUser && AppState.currentUser.id) ? AppState.currentUser.id : 1;
+  const data = await apiGet('/dashboard/assistant?employeeId=' + encodeURIComponent(empId), "dashboard");
   if (!data) return;
 
   // Actualizar saludo
@@ -852,10 +853,14 @@ async function startShift() {
   updateShiftUI();
   startShiftTimer();
 
-  // Insertar en la tabla de jornadas en vivo
-  insertLiveShiftRow(AppState.currentUser.name, nowTime, "17:30", "En Curso");
+  const userName = AppState.currentUser ? AppState.currentUser.name : "Hassan Adraou";
+  insertLiveShiftRow(userName, nowTime, "17:30", "En Curso");
 
-  await apiPost("/attendance/clock-in", { clockIn: nowTime });
+  const empId = (AppState.currentUser && AppState.currentUser.id) ? AppState.currentUser.id : 1;
+  const res = await apiClockIn(empId, "PRESENCIAL");
+  if (res && res.error) {
+    console.warn("[startShift] Aviso del backend:", res.error);
+  }
 }
 
 // Inicia el cronometro de tiempo trabajado
