@@ -294,8 +294,8 @@
         <section id="view-dashboard" class="subview active">
           
           <div class="greeting-header">
-            <h1 class="greeting-title" id="dash-greeting-name">Buenos días, Mohamed</h1>
-            <div class="greeting-sub">Lunes, 2 de noviembre de 2026 · Vic, Barcelona (14°C, Parcialmente nublado)</div>
+            <h1 class="greeting-title" id="dash-greeting-name">Buenos días, Hassan</h1>
+            <div class="greeting-sub" id="dash-greeting-sub">Cargando fecha actual, centro y clima...</div>
           </div>
 
           <!-- TARJETA PRINCIPAL: CONTROL HORARIO Y FICHAJE DINAMICO -->
@@ -387,17 +387,17 @@
 
             <div class="human-card">
               <div class="card-label" id="lbl-card-traffic">Tráfico y Desplazamiento</div>
-              <div class="card-title" id="commute-office">Oficina Central Vic</div>
+              <div class="card-title" id="commute-office">Sede Central Barcelona (Avinguda Diagonal 450)</div>
               <div class="card-metric-highlight" id="commute-minutes">22 min</div>
-              <div class="card-subtext" id="commute-status" style="margin-bottom: 8px;">Tráfico: Fluido · C-17 sin retenciones</div>
-              <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px;" id="traffic-source">Fuente: SCT & Red Viaria Vic</div>
+              <div class="card-subtext" id="commute-status" style="margin-bottom: 8px;">Tráfico: Fluido · Ronda de Dalt y Diagonal despejadas</div>
+              <div style="font-size: 0.72rem; color: var(--text-muted); margin-bottom: 8px;" id="traffic-source">Fuente: SCT - Servei Català de Trànsit & Guàrdia Urbana</div>
               <button id="btn-ver-ruta" class="btn-clean btn-clean-outline" type="button" style="width: 100%; font-size: 0.78rem; padding: 5px;">Ver ruta recomendada &rarr;</button>
             </div>
 
             <div class="human-card">
               <div class="card-label" id="lbl-card-weather">Tiempo en tu zona</div>
-              <div class="card-title" id="weather-location">Vic, Barcelona</div>
-              <div class="card-metric-highlight" id="weather-temp">14 °C</div>
+              <div class="card-title" id="weather-location">Barcelona (Cataluña)</div>
+              <div class="card-metric-highlight" id="weather-temp">17 °C</div>
               <div class="card-subtext" id="weather-desc" style="margin-bottom: 8px;">Cargando previsión...</div>
               <div style="font-size: 0.72rem; color: var(--text-muted);" id="weather-meta">Humedad: -- · Viento: --</div>
               <div style="font-size: 0.68rem; color: var(--text-muted); margin-top: 4px;" id="weather-source">Open-Meteo Realtime API</div>
@@ -752,7 +752,7 @@
                   <td>2 nov 2026</td>
                   <td>08:45</td>
                   <td>17:30</td>
-                  <td>Presencial Vic</td>
+                  <td>Presencial Barcelona</td>
                   <td><span class="status-pill badge-active">En Curso</span></td>
                   <td><span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">SHA: 7f83b165...</span></td>
                 </tr>
@@ -761,7 +761,7 @@
                   <td>2 nov 2026</td>
                   <td>08:50</td>
                   <td>17:30</td>
-                  <td>Presencial Vic</td>
+                  <td>Presencial Barcelona</td>
                   <td><span class="status-pill badge-active">En Curso</span></td>
                   <td><span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">SHA: a1c944f2...</span></td>
                 </tr>
@@ -770,7 +770,7 @@
                   <td>2 nov 2026</td>
                   <td>09:00</td>
                   <td>17:30</td>
-                  <td>Presencial Vic</td>
+                  <td>Presencial Barcelona</td>
                   <td><span class="status-pill badge-active">En Curso</span></td>
                   <td><span style="font-family: monospace; font-size: 0.75rem; color: var(--text-muted);">SHA: 34b9e102...</span></td>
                 </tr>
@@ -1000,7 +1000,7 @@
               <span id="badge-supervisor-count" style="margin-left: 6px; background-color: var(--primary); color: #FFFFFF; font-size: 0.72rem; padding: 2px 7px; border-radius: 10px;">3</span>
             </button>
             <button type="button" class="vac-subtab-btn" id="btn-subtab-holidays">
-              <span id="txt-subtab-holidays">Festivos Oficiales (API España / Vic)</span>
+              <span id="txt-subtab-holidays">Festivos Oficiales por Centro</span>
             </button>
           </div>
 
@@ -1116,11 +1116,11 @@
           <div id="vac-panel-holidays" class="vac-panel-container" style="display: none;">
             <div style="margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
               <div>
-                <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main);" id="lbl-holidays-title">Festivos Oficiales España / Cataluña / Vic (2026)</h3>
+                <h3 style="margin: 0; font-size: 1rem; font-weight: 700; color: var(--text-main);" id="lbl-holidays-title">Festivos Oficiales según Centro de Trabajo (2026)</h3>
                 <p style="margin: 2px 0 0 0; font-size: 0.82rem; color: var(--text-muted);" id="lbl-holidays-sub">Sincronizados automáticamente desde la API oficial de festivos públicos.</p>
               </div>
               <div style="font-size: 0.78rem; background: var(--bg-card); border: 1px solid var(--border-color); padding: 4px 10px; border-radius: 4px;" id="lbl-holidays-source">
-                Fuente: API Nager.Date Oficial & Festivos Vic
+                Fuente: Calendario Laboral Oficial según Sede y Comunidad
               </div>
             </div>
 
@@ -1430,7 +1430,7 @@
               <form id="incident-form">
                 <div class="prl-form-group">
                   <label for="inc-location" class="prl-label">Ubicación o Centro de Trabajo</label>
-                  <input id="inc-location" class="prl-input" type="text" value="Oficina Central Vic - Planta 1" required>
+                  <input id="inc-location" class="prl-input" type="text" value="Sede Central Barcelona - Planta 1" required>
                 </div>
 
                 <div class="prl-form-group">
@@ -1500,7 +1500,7 @@
   <div id="modal-route" class="modal-overlay" style="display: none;">
     <div class="modal-card">
       <div class="modal-header">
-        <h2 class="modal-title">Ruta a Oficina Central Vic</h2>
+        <h2 class="modal-title">Ruta a Sede Central y Delegaciones</h2>
         <button id="btn-close-route" class="btn-close-modal" type="button">&times;</button>
       </div>
       <div class="modal-body">
@@ -1654,7 +1654,7 @@
 
           <div class="profile-field-box" style="background: #F8F9FA; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
             <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;" id="lbl-profile-center">Centre de treball</div>
-            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-main);" id="profile-center-val">Vic Central (Edifici A)</div>
+            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-main);" id="profile-center-val">Barcelona (Sede Central)</div>
           </div>
 
           <div class="profile-field-box" style="background: #F8F9FA; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
