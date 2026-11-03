@@ -1037,12 +1037,58 @@ function handleCalendarDayClick(dayText, isHoliday, isToday) {
 // 4. Gestion de Empleados
 // -----------------------------------------------------------------------------
 
+// Normaliza el objeto empleado para compatibilidad total con Backend Spring Boot y Frontend
+function normalizeEmployee(emp) {
+  if (!emp) return emp;
+  const name = emp.name || emp.nombre || "Empleado";
+  const email = emp.email || "";
+  const department = emp.department || emp.departamento || "Tecnología";
+  const role = emp.role || emp.puesto || "Personal";
+  let status = emp.status;
+  if (!status) {
+    status = (emp.activo === false || emp.activo === 0) ? "Baja" : "Activo";
+  }
+  const parts = name.trim().split(/\s+/);
+  const initials = parts.length >= 2 
+    ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    : name.substring(0, 2).toUpperCase();
+  const avatar = emp.avatar || initials || "EM";
+  const privilege = emp.privilege || (
+    role.toLowerCase().includes("administrador") ? "ADMIN" :
+    (role.toLowerCase().includes("lead") || role.toLowerCase().includes("responsable") || role.toLowerCase().includes("director") || role.toLowerCase().includes("coordinador")) ? "SUPERVISOR" : "EMPLOYEE"
+  );
+
+  return {
+    ...emp,
+    id: emp.id,
+    name,
+    nombre: name,
+    email,
+    department,
+    departamento: department,
+    role,
+    puesto: role,
+    status,
+    activo: status === "Activo",
+    avatar,
+    privilege,
+    centroTrabajo: emp.centroTrabajo || emp.centro_trabajo || "Oficina Central Vic"
+  };
+}
+
 // Carga empleados desde la API o usa datos de prueba
 async function loadEmployeesData() {
   const data = await apiGet("/employees", "employees");
-  AppState.employeeList = Array.isArray(data) ? data : (data.employees || TEST_DATA.employees);
+  const rawList = Array.isArray(data) ? data : (data && data.employees ? data.employees : TEST_DATA.employees);
+  AppState.employeeList = (rawList || []).map(normalizeEmployee);
   AppState.filteredEmployees = [...AppState.employeeList];
   AppState.empCurrentPage = 1;
+
+  // Actualizar contadores KPI de la cabecera
+  const activosCount = AppState.employeeList.filter(e => e.status === "Activo").length;
+  const kpiActivos = document.getElementById("kpi-emp-activos");
+  if (kpiActivos) kpiActivos.textContent = activosCount;
+
   filterEmployees();
 }
 
@@ -1141,10 +1187,13 @@ function filterEmployees() {
     if (AppState.empTabFilter === "active" && emp.status !== "Activo") return false;
     if (AppState.empTabFilter === "archived" && emp.status !== "Baja") return false;
 
-    // Filtro de texto de busqueda
-    const matchText = emp.name.toLowerCase().includes(query) ||
-                      emp.email.toLowerCase().includes(query) ||
-                      emp.role.toLowerCase().includes(query);
+    // Filtro de texto de busqueda con comprobacion segura de nulos
+    const empName = (emp.name || emp.nombre || "").toLowerCase();
+    const empEmail = (emp.email || "").toLowerCase();
+    const empRole = (emp.role || emp.puesto || "").toLowerCase();
+    const matchText = !query || empName.includes(query) ||
+                      empEmail.includes(query) ||
+                      empRole.includes(query);
 
     // Filtro de desplegables
     const matchDept = !dept || emp.department === dept;

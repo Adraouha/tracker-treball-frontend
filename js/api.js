@@ -4,23 +4,16 @@
 // ============================================================================
 // CONFIGURACION DE ENTORNO Y URL BASE DE LA API
 // ============================================================================
-// URL de despliegue del Backend en Railway (y fallback a Render o personalizada)
+// URL de despliegue del Backend en Railway
 const RAILWAY_BACKEND_URL = (typeof window !== "undefined" && window.RENDER_API_URL)
   ? window.RENDER_API_URL
   : "https://tracker-treball-backend-production-e9cd.up.railway.app";
 
-// Deteccion automatica de entorno: local (localhost / 127.0.0.1) vs produccion (Vercel / GitHub Pages)
-const isLocalhost = Boolean(
-  typeof window !== "undefined" && (
-    window.location.hostname === "localhost" ||
-    window.location.hostname === "127.0.0.1" ||
-    window.location.hostname === "[::1]" ||
-    window.location.protocol === "file:"
-  )
-);
+// Permite forzar backend local si se define window.USE_LOCAL_BACKEND = true
+const isLocalBackend = Boolean(typeof window !== "undefined" && window.USE_LOCAL_BACKEND);
 
-// URL base unificada para todos los endpoints
-const API_BASE = isLocalhost
+// URL base unificada para todos los endpoints (por defecto siempre apunta al Backend en Railway)
+const API_BASE = isLocalBackend
   ? "http://localhost:8080/api/v1"
   : `${RAILWAY_BACKEND_URL}/api/v1`;
 
