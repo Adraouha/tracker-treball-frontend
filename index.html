@@ -141,14 +141,7 @@
           <button id="btn-lang-es" class="btn-pill" type="button">ES</button>
         </div>
 
-        <!-- Boton Documentacion Javadoc -->
-        <a href="docs/javadoc/index.html" target="_blank" id="btn-nav-javadoc" class="btn-nav-doc" title="Veure documentació Javadoc de l'API / Ver documentación Javadoc de la API">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-          </svg>
-          <span data-i18n="nav.javadoc">Javadoc API</span>
-        </a>
+        
 
         <!-- Badge de Usuario con funcion de Perfil -->
         <div class="user-badge" id="user-badge-profile" title="Clic per veure el perfil d'usuari / Clic para ver el perfil">
@@ -270,14 +263,18 @@
               <span>PRL Help Center</span>
             </button>
 
-            <!-- Acceso a Documentacion Javadoc -->
-            <a href="docs/javadoc/index.html" target="_blank" class="sidebar-link link-javadoc" id="nav-btn-javadoc" style="text-decoration: none;">
+            <!-- Centros de Trabajo Oficiales -->
+            <button id="nav-btn-centros" class="sidebar-link" type="button">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                <path d="M3 21h18"></path>
+                <path d="M5 21V7l8-4v18"></path>
+                <path d="M19 21V11l-6-4"></path>
+                <line x1="9" y1="9" x2="9" y2="9.01"></line>
+                <line x1="9" y1="13" x2="9" y2="13.01"></line>
+                <line x1="9" y1="17" x2="9" y2="17.01"></line>
               </svg>
-              <span data-i18n="nav.javadoc">Javadoc API Docs</span>
-            </a>
+              <span data-i18n="nav.workCenters">Centros de Trabajo</span>
+            </button>
           </nav>
         </div>
 
@@ -680,9 +677,14 @@
               <h1 class="emp-page-title">Registro de Jornadas Laborales</h1>
               <p class="emp-page-sub">Auditoría diaria de entradas, pausas, salidas y cómputo de horas con firma SHA-256.</p>
             </div>
-            <button class="btn-clean btn-clean-primary" type="button" onclick="alert('Exportando registro mensual de jornadas en formato oficial PDF / Excel')">
-              <span>Exportar Informe Oficial</span>
-            </button>
+            <div style="display: flex; gap: 10px;">
+              <button id="btn-open-manual-shift" class="btn-clean btn-clean-primary" type="button">
+                <span>+ Registrar Jornada Manual</span>
+              </button>
+              <button class="btn-clean btn-clean-outline" type="button" onclick="alert('Exportando registro oficial de jornadas en formato PDF / Excel.')">
+                <span>Exportar Informe Oficial</span>
+              </button>
+            </div>
           </div>
 
           <!-- KPIs Jornadas -->
@@ -825,6 +827,93 @@
         <!-- =================================================================
              PANTALLA: VACACIONES (GESTION Y APROBACIONES DE AUSENCIAS)
              ================================================================= -->
+        
+
+        <!-- =================================================================
+             PANTALLA: PAUSAS Y DESCANSOS LABORALES
+             ================================================================= -->
+        <section id="view-pausas" class="subview" style="display: none;">
+          <div class="emp-breadcrumb">
+            <span>Mi organización</span> &rsaquo; <span class="active">Pausas y Descansos</span>
+          </div>
+
+          <div class="employees-top-bar">
+            <div>
+              <h1 class="emp-page-title">Control de Pausas y Descansos</h1>
+              <p class="emp-page-sub">Monitorización de tiempos de café, almuerzo, descansos de convenio y cómputo de minutos adicionales.</p>
+            </div>
+            <button id="btn-open-manual-break" class="btn-clean btn-clean-primary" type="button">
+              <span>+ Registrar Pausa Manual</span>
+            </button>
+          </div>
+
+          <div class="emp-kpi-grid">
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Pausas registradas hoy</div>
+                <div class="emp-kpi-number" id="kpi-pauses-count">19</div>
+                <div class="emp-kpi-note green">Cumplimiento del descanso del 95%</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
+                  <line x1="6" y1="1" x2="6" y2="4"></line>
+                  <line x1="10" y1="1" x2="10" y2="4"></line>
+                </svg>
+              </div>
+            </div>
+
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Duración media de descanso</div>
+                <div class="emp-kpi-number">15 min</div>
+                <div class="emp-kpi-note green">Alineado con el convenio colectivo</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+              </div>
+            </div>
+
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Tiempo adicional consumido</div>
+                <div class="emp-kpi-number" id="kpi-excess-pauses-val">0 min (0.0 h)</div>
+                <div class="emp-kpi-note" id="kpi-excess-pauses-sub">Exceso de pausas sobre el límite</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="employees-table-card" style="margin-top: 20px;">
+            <table class="employees-table">
+              <thead>
+                <tr>
+                  <th>Empleado</th>
+                  <th>Centro</th>
+                  <th>Tipo de Pausa</th>
+                  <th>Horario</th>
+                  <th>Duración</th>
+                  <th>Minutos Adicionales</th>
+                  <th>Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tbody-pausas-table">
+                <!-- Se pobla dinamicamente -->
+              </tbody>
+            </table>
+          </div>
+        </section>
+
         <section id="view-vacaciones" class="subview" style="display: none;">
           <div class="emp-breadcrumb">
             <span id="lbl-vac-breadcrumb-org">Mi organización</span> &rsaquo; <span class="active" id="lbl-vac-breadcrumb-active">Vacaciones y Ausencias</span>
@@ -1067,7 +1156,7 @@
               <h1 class="emp-page-title">Gestión de Bajas Médicas y Salud Laboral</h1>
               <p class="emp-page-sub">Seguimiento confidencial de procesos de incapacidad temporal, partes médicos y mutua laboral.</p>
             </div>
-            <button class="btn-clean btn-clean-primary" type="button" onclick="alert('Registro confidencial de parte de baja/alta abierto.')">
+            <button class="btn-clean btn-clean-primary" type="button" id="btn-open-new-leave">
               <span>+ Registrar Parte Médico</span>
             </button>
           </div>
@@ -1130,7 +1219,7 @@
                   <th>Estado del Expediente</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody id="tbody-leaves-table">
                 <tr>
                   <td><strong>Roger Umpiérrez</strong></td>
                   <td>Contingencia Común (Traumatología)</td>
@@ -1157,7 +1246,7 @@
               <h1 class="emp-page-title">Proyectos y Asignación de Recursos</h1>
               <p class="emp-page-sub">Control de avances de Sprint, presupuesto de horas y equipo asignado.</p>
             </div>
-            <button class="btn-clean btn-clean-primary" type="button" onclick="alert('Creación de nuevo proyecto corporativo.')">
+            <button class="btn-clean btn-clean-primary" type="button" id="btn-open-new-project">
               <span>+ Nuevo Proyecto</span>
             </button>
           </div>
@@ -1207,7 +1296,7 @@
           </div>
 
           <!-- Tarjetas de Proyectos en Bento Grid -->
-          <div class="cards-grid-3" style="margin-top: 20px;">
+          <div id="projects-grid-container" class="cards-grid-3" style="margin-top: 20px;">
             <div class="human-card">
               <div class="card-label">Proyecto Principal</div>
               <div class="card-title">Tracker Treball SaaS</div>
@@ -1252,6 +1341,78 @@
         <!-- =================================================================
              PANTALLA 3: PRL HELP CENTER
              ================================================================= -->
+        
+
+        <!-- =================================================================
+             PANTALLA: SEDES Y CENTROS DE TRABAJO (RED CORPORATIVA)
+             ================================================================= -->
+        <section id="view-centros" class="subview" style="display: none;">
+          <div class="emp-breadcrumb">
+            <span>Mi organización</span> &rsaquo; <span class="active">Centros de Trabajo</span>
+          </div>
+
+          <div class="employees-top-bar">
+            <div>
+              <h1 class="emp-page-title">Red de Centros de Trabajo y Sedes Oficiales</h1>
+              <p class="emp-page-sub">Directorio corporativo de sedes físicas con dirección oficial, código de centro, horario y asignación de plantilla.</p>
+            </div>
+            <div style="font-size: 0.85rem; background: #EEF2F6; padding: 6px 14px; border-radius: 6px; font-weight: 600; color: #1E293B;">
+              🏛️ 6 Sedes Operativas · Barcelona (Sede Central)
+            </div>
+          </div>
+
+          <div class="emp-kpi-grid">
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Centros de Trabajo</div>
+                <div class="emp-kpi-number">6</div>
+                <div class="emp-kpi-note green">España y Sede Internacional</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 21h18"></path>
+                  <path d="M5 21V7l8-4v18"></path>
+                  <path d="M19 21V11l-6-4"></path>
+                </svg>
+              </div>
+            </div>
+
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Sede Central Barcelona</div>
+                <div class="emp-kpi-number" id="kpi-center-bcn-count">3 miembros</div>
+                <div class="emp-kpi-note green">Hassan Adraou, Albert Guiteras, Albert Profe</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                </svg>
+              </div>
+            </div>
+
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Delegaciones Territoriales</div>
+                <div class="emp-kpi-number">18 miembros</div>
+                <div class="emp-kpi-note">Madrid (4), Bilbao (4), Sevilla (4), Valencia (3), París (3)</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Contenedor Rejilla de Centros -->
+          <div id="work-centers-container" class="work-centers-grid">
+            <!-- Renderizado dinamicamente -->
+          </div>
+        </section>
+
         <section id="view-prl" class="subview" style="display: none;">
           
           <div class="prl-banner-sos">
@@ -1314,6 +1475,23 @@
 
         </section>
 
+      
+        <!-- Application Global Footer -->
+        <footer class="app-global-footer">
+          <div>
+            <span>© 2026 Tracker Treball SaaS · Sistema de Control Horario, Presencia y PRL ·</span>
+            <span style="color: var(--success); font-weight: 600;"> ● Conectado a Railway MySQL</span>
+          </div>
+          <div>
+            <a href="docs/javadoc/index.html" target="_blank" id="footer-btn-javadoc" class="footer-javadoc-btn" title="Documentación oficial de arquitectura Javadoc de la API">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+              </svg>
+              <span data-i18n="nav.javadoc">Documentació Javadoc API</span>
+            </a>
+          </div>
+        </footer>
       </main>
     </div>
   </div>
@@ -1742,5 +1920,293 @@
 
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
+
+  <!-- MODAL: REGISTRAR PAUSA MANUAL -->
+  <div id="modal-manual-break" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Registrar Pausa Laboral Manual</h2>
+        <button id="btn-close-manual-break" class="btn-close-modal" type="button">&times;</button>
+      </div>
+      <form id="form-manual-break" class="modal-body">
+        <div class="login-field-group">
+          <label class="login-field-label" for="sel-break-emp">Empleado *</label>
+          <select id="sel-break-emp" class="emp-filter-select" style="width: 100%; height: 42px;" required></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-break-type">Tipo de Pausa *</label>
+            <select id="sel-break-type" class="emp-filter-select" style="width: 100%; height: 42px;" required>
+              <option value="Café / Descanso">Café / Descanso (Máx 15 min)</option>
+              <option value="Almuerzo / Comida">Almuerzo / Comida (Máx 60 min)</option>
+              <option value="Consulta Médica">Consulta Médica Justificada</option>
+              <option value="Asuntos Propios">Asuntos Propios</option>
+              <option value="Incidencia Técnica">Incidencia Técnica / PRL</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-break-minutes">Minutos de Pausa *</label>
+            <input id="inp-break-minutes" class="login-input" type="number" min="5" max="180" value="15" required style="height: 42px;">
+          </div>
+        </div>
+        <div class="login-field-group">
+          <label class="login-field-label" for="inp-break-notes">Observaciones / Justificación</label>
+          <input id="inp-break-notes" class="login-input" type="text" placeholder="Ej. Pausa de café reglamentaria" style="height: 42px;">
+        </div>
+        <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="btn-cancel-manual-break" class="btn-clean btn-clean-outline" type="button">Cancelar</button>
+          <button type="submit" class="btn-clean btn-clean-primary">Guardar Pausa</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR JORNADA MANUAL -->
+  <div id="modal-manual-shift" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Registrar / Corregir Jornada Laboral</h2>
+        <button id="btn-close-manual-shift" class="btn-close-modal" type="button">&times;</button>
+      </div>
+      <form id="form-manual-shift" class="modal-body">
+        <div class="login-field-group">
+          <label class="login-field-label" for="sel-shift-emp">Empleado *</label>
+          <select id="sel-shift-emp" class="emp-filter-select" style="width: 100%; height: 42px;" required></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-shift-date">Fecha *</label>
+            <input id="inp-shift-date" class="login-input" type="date" required style="height: 42px;">
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-shift-in">Hora Entrada *</label>
+            <input id="inp-shift-in" class="login-input" type="time" value="09:00" required style="height: 42px;">
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-shift-out">Hora Salida *</label>
+            <input id="inp-shift-out" class="login-input" type="time" value="17:30" required style="height: 42px;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-shift-modality">Modalidad</label>
+            <select id="sel-shift-modality" class="emp-filter-select" style="width: 100%; height: 42px;">
+              <option value="PRESENCIAL">Presencial</option>
+              <option value="TELETRABAJO">Teletrabajo</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-shift-center">Centro de Trabajo</label>
+            <select id="sel-shift-center" class="emp-filter-select" style="width: 100%; height: 42px;">
+              <option value="Barcelona">Barcelona (Sede Central)</option>
+              <option value="Madrid">Madrid</option>
+              <option value="Bilbao">Bilbao</option>
+              <option value="Sevilla">Sevilla</option>
+              <option value="Valencia">Valencia</option>
+              <option value="Extranjero">Extranjero</option>
+            </select>
+          </div>
+        </div>
+        <div class="login-field-group">
+          <label class="login-field-label" for="inp-shift-reason">Motivo de corrección / Observaciones</label>
+          <input id="inp-shift-reason" class="login-input" type="text" placeholder="Ej. Olvido de fichaje por reunión presencial externa" style="height: 42px;">
+        </div>
+        <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="btn-cancel-manual-shift" class="btn-clean btn-clean-outline" type="button">Cancelar</button>
+          <button type="submit" class="btn-clean btn-clean-primary">Registrar Jornada</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR BAJA MÉDICA -->
+  <div id="modal-new-leave" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Registrar Parte de Baja Médica</h2>
+        <button id="btn-close-new-leave" class="btn-close-modal" type="button">&times;</button>
+      </div>
+      <form id="form-new-leave" class="modal-body">
+        <div class="login-field-group">
+          <label class="login-field-label" for="sel-leave-emp">Empleado *</label>
+          <select id="sel-leave-emp" class="emp-filter-select" style="width: 100%; height: 42px;" required></select>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-leave-type">Tipo de Contingencia *</label>
+            <select id="sel-leave-type" class="emp-filter-select" style="width: 100%; height: 42px;" required>
+              <option value="Enfermedad Común">Enfermedad Común</option>
+              <option value="Accidente Laboral">Accidente Laboral</option>
+              <option value="Accidente No Laboral">Accidente No Laboral</option>
+              <option value="Maternidad / Paternidad">Maternidad / Paternidad</option>
+              <option value="Riesgo durante el Embarazo">Riesgo durante el Embarazo</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-leave-start">Fecha de Inicio *</label>
+            <input id="inp-leave-start" class="login-input" type="date" required style="height: 42px;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-leave-end">Fecha Fin Prevista</label>
+            <input id="inp-leave-end" class="login-input" type="date" style="height: 42px;">
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-leave-col">Núm. Colegiado Médico *</label>
+            <input id="inp-leave-col" class="login-input" type="text" placeholder="COL-12345" required style="height: 42px;">
+          </div>
+        </div>
+        <div class="login-field-group">
+          <label class="login-field-label" for="inp-leave-center">Centro de Salud / Mutua *</label>
+          <input id="inp-leave-center" class="login-input" type="text" placeholder="CAP Sarrià / Mutua Universal" required style="height: 42px;">
+        </div>
+        <div class="login-field-group">
+          <label class="login-field-label" for="inp-leave-obs">Observaciones Confidenciales</label>
+          <textarea id="inp-leave-obs" class="login-input" rows="2" placeholder="Reposo domiciliario y tratamiento prescrito"></textarea>
+        </div>
+        <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="btn-cancel-new-leave" class="btn-clean btn-clean-outline" type="button">Cancelar</button>
+          <button type="submit" class="btn-clean btn-clean-primary">Registrar Baja Médica</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: REGISTRAR PROYECTO -->
+  <div id="modal-new-project" class="modal-overlay" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2 class="modal-title">Crear Nuevo Proyecto Corporativo</h2>
+        <button id="btn-close-new-project" class="btn-close-modal" type="button">&times;</button>
+      </div>
+      <form id="form-new-project" class="modal-body">
+        <div class="login-field-group">
+          <label class="login-field-label" for="inp-proj-name">Nombre del Proyecto *</label>
+          <input id="inp-proj-name" class="login-input" type="text" placeholder="Ej. Portal de Autoservicio Empleados" required style="height: 42px;">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-proj-status">Estado *</label>
+            <select id="sel-proj-status" class="emp-filter-select" style="width: 100%; height: 42px;">
+              <option value="IN_PROGRESS">En Curso (Active)</option>
+              <option value="PLANNING">En Planificación</option>
+              <option value="REVIEW">En Revisión</option>
+              <option value="COMPLETED">Completado</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-proj-progress">Progreso de Sprint (%) *</label>
+            <input id="inp-proj-progress" class="login-input" type="number" min="0" max="100" value="50" required style="height: 42px;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-proj-hours">Horas Dedicadas</label>
+            <input id="inp-proj-hours" class="login-input" type="number" min="0" value="20" style="height: 42px;">
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-proj-members">Miembros Asignados</label>
+            <input id="inp-proj-members" class="login-input" type="number" min="1" max="50" value="4" style="height: 42px;">
+          </div>
+        </div>
+        <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: flex-end; gap: 10px;">
+          <button id="btn-cancel-new-project" class="btn-clean btn-clean-outline" type="button">Cancelar</button>
+          <button type="submit" class="btn-clean btn-clean-primary">Crear Proyecto</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: EDITAR EMPLEADO (CRUD UPDATE) -->
+  <div id="modal-edit-emp" class="modal-overlay" style="display: none;">
+    <div class="modal-card" style="max-width: 640px; width: 95%;">
+      <div class="modal-header">
+        <h2 class="modal-title">Editar Ficha de Empleado</h2>
+        <button id="btn-close-edit-emp" class="btn-close-modal" type="button">&times;</button>
+      </div>
+      <form id="form-edit-emp" class="modal-body">
+        <input type="hidden" id="inp-edit-emp-id">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-edit-emp-name">Nombre y Apellidos *</label>
+            <input id="inp-edit-emp-name" class="login-input" type="text" required style="height: 42px;">
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-edit-emp-email">Correo Corporativo *</label>
+            <input id="inp-edit-emp-email" class="login-input" type="email" required style="height: 42px;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-edit-emp-dept">Departamento</label>
+            <select id="sel-edit-emp-dept" class="emp-filter-select" style="width: 100%; height: 42px;">
+              <option value="Dirección">Dirección</option>
+              <option value="Tecnología">Tecnología</option>
+              <option value="Personas">Personas</option>
+              <option value="Operaciones">Operaciones</option>
+              <option value="Administración">Administración</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-edit-emp-role">Cargo / Puesto *</label>
+            <input id="inp-edit-emp-role" class="login-input" type="text" required style="height: 42px;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-edit-emp-center">Centro de Trabajo *</label>
+            <select id="sel-edit-emp-center" class="emp-filter-select" style="width: 100%; height: 42px;" required>
+              <option value="1">Barcelona (Sede Central)</option>
+              <option value="2">Madrid</option>
+              <option value="3">Bilbao</option>
+              <option value="4">Sevilla</option>
+              <option value="5">Valencia</option>
+              <option value="6">Extranjero</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-edit-emp-nss">Núm. Seguridad Social (NSS)</label>
+            <input id="inp-edit-emp-nss" class="login-input" type="text" style="height: 42px;">
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-edit-emp-civil">Estado Civil</label>
+            <select id="sel-edit-emp-civil" class="emp-filter-select" style="width: 100%; height: 42px;">
+              <option value="Soltero/a">Soltero/a</option>
+              <option value="Casado/a">Casado/a</option>
+              <option value="Divorciado/a">Divorciado/a</option>
+              <option value="Viudo/a">Viudo/a</option>
+              <option value="Pareja de hecho">Pareja de hecho</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-edit-emp-telefono">Teléfono</label>
+            <input id="inp-edit-emp-telefono" class="login-input" type="tel" style="height: 42px;">
+          </div>
+        </div>
+        <div class="login-field-group">
+          <label class="login-field-label" for="inp-edit-emp-domicilio">Domicilio Completo</label>
+          <input id="inp-edit-emp-domicilio" class="login-input" type="text" style="height: 42px;">
+        </div>
+        <div class="login-field-group">
+          <label class="login-field-label" for="sel-edit-emp-status">Estado del Empleado</label>
+          <select id="sel-edit-emp-status" class="emp-filter-select" style="width: 100%; height: 42px;">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo / Excedencia</option>
+          </select>
+        </div>
+        <div class="modal-footer" style="padding: 16px 0 0 0; display: flex; justify-content: space-between; align-items: center;">
+          <button id="btn-archive-emp-action" class="btn-clean" type="button" style="color: #DC2626; border-color: #FECACA;">Archivar / Desactivar</button>
+          <div style="display: flex; gap: 10px;">
+            <button id="btn-cancel-edit-emp" class="btn-clean btn-clean-outline" type="button">Cancelar</button>
+            <button type="submit" class="btn-clean btn-clean-primary">Guardar Cambios</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
 </body>
 </html>

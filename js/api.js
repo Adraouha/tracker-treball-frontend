@@ -93,6 +93,28 @@ async function apiPut(endpoint, payload) {
   }
 }
 
+// Peticiones DELETE
+async function apiDelete(endpoint) {
+  try {
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method: "DELETE",
+      headers: getApiHeaders()
+    });
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      return { 
+        status: "ERROR", 
+        error: (data && (data.message || data.error)) || `Error ${res.status}`, 
+        data 
+      };
+    }
+    return data || { status: "SUCCESS" };
+  } catch (err) {
+    console.warn(`[apiDelete] Excepcion en ${endpoint}:`, err.message);
+    return { status: "ERROR", error: err.message };
+  }
+}
+
 // ============================================================================
 // FUNCIONES ESPECIFICAS DEL SISTEMA TRACKER TREBALL
 // ============================================================================

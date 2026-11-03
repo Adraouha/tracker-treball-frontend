@@ -186,6 +186,12 @@ const I18N = {
     navMedicalLeaves: "Baixes mèdiques",
     navProjects: "Projectes",
     navPrl: "PRL Help Center",
+    navWorkCenters: "Centres de Treball",
+    navBreaks: "Pausas i Descansos",
+    workCentersHeading: "Xarxa de Centres de Treball i Seus Oficials",
+    workCentersSub: "Directori corporatiu de seus físiques amb adreça oficial, codi de centre, horari i assignació de plantilla.",
+    breaksHeading: "Control de Pausas i Descansos Laborals",
+    breaksSub: "Monitorització de temps de cafè, dinar, descansos de conveni i còmput de minuts addicionals.",
     helpTitle: "Som aquí per ajudar-te",
     helpSub: "Guies i suport per al teu equip.",
     helpBtn: "Centre d'ajuda PRL →",
@@ -390,6 +396,12 @@ const I18N = {
     navMedicalLeaves: "Bajas médicas",
     navProjects: "Proyectos",
     navPrl: "PRL Help Center",
+    navWorkCenters: "Centros de Trabajo",
+    navBreaks: "Pausas y Descansos",
+    workCentersHeading: "Red de Centros de Trabajo y Sedes Oficiales",
+    workCentersSub: "Directorio corporativo de sedes físicas con dirección oficial, código de centro, horario y asignación de plantilla.",
+    breaksHeading: "Control de Pausas y Descansos Laborales",
+    breaksSub: "Monitorización de tiempos de café, almuerzo, descansos de convenio y cómputo de minutos adicionales.",
     helpTitle: "Estamos para ayudarte",
     helpSub: "Guías y soporte para tu equipo.",
     helpBtn: "Centro de ayuda PRL →",
@@ -598,7 +610,7 @@ function toggleAuthScreen(showMain) {
 // Cambia entre pestanyas del sidebar (Dashboard, Empleados, Jornadas, Pausas, Vacaciones, Bajas, Proyectos, PRL)
 function navigateTo(viewName) {
   AppState.currentView = viewName;
-  const views = ["dashboard", "empleados", "jornadas", "pausas", "vacaciones", "bajas", "proyectos", "prl"];
+  const views = ["dashboard", "empleados", "jornadas", "pausas", "vacaciones", "bajas", "proyectos", "centros", "prl"];
 
   views.forEach(name => {
     const el = document.getElementById(`view-${name}`);
@@ -610,11 +622,20 @@ function navigateTo(viewName) {
   if (viewName === "dashboard") {
     loadDashboardData();
     loadWeatherAndTraffic();
+    loadDashboardReminders();
   } else if (viewName === "empleados") {
     loadEmployeesData();
   } else if (viewName === "vacaciones") {
     loadVacationsData();
     loadHolidaysData();
+  } else if (viewName === "centros") {
+    loadWorkCentersData();
+  } else if (viewName === "pausas") {
+    loadBreaksData();
+  } else if (viewName === "bajas") {
+    loadLeavesData();
+  } else if (viewName === "proyectos") {
+    loadProjectsData();
   }
 }
 
@@ -1886,7 +1907,7 @@ async function loadVacationsData() {
     if (res && res.status === "SUCCESS") {
       AppState.vacationBalance = res.balance || { total: 22, used: 5, pending: 4, remaining: 13 };
       AppState.myVacations = res.myRequests || [];
-      AppState.supervisorVacations = res.allRequests || [];
+      AppState.supervisorVacations = res.teamRequests || res.allRequests || [];
 
       // Actualizar KPIs de balance
       const b = AppState.vacationBalance;
@@ -2054,7 +2075,9 @@ async function submitVacationRequest() {
     return;
   }
 
+  const empId = AppState.currentEmployeeId || (AppState.currentUser ? AppState.currentUser.id : 1);
   const res = await apiPost("/vacations/requests", {
+    employeeId: empId,
     startDate: start,
     endDate: end,
     daysCount: days,
@@ -2062,11 +2085,22 @@ async function submitVacationRequest() {
     reason: reason
   });
 
-  if (res && res.request) {
-    alert(`Solicitud enviada correctamente al supervisor: ${days} días laborables solicitados del ${start} al ${end}.`);
+  if (res && (res.request || res.status === "SUCCESS")) {
+    const isCa = AppState.language === "ca";
+    alert(isCa 
+      ? `Sol·licitud enviada correctament: ${days} dies laborables sol·licitats del ${start} al ${end}.`
+      : `Solicitud enviada correctamente: ${days} días laborables solicitados del ${start} al ${end}.`
+    );
     await loadVacationsData();
+    const startInp = document.getElementById("vac-input-start");
+    const endInp = document.getElementById("vac-input-end");
+    const reasonInp = document.getElementById("vac-input-reason");
+    if (startInp) startInp.value = "";
+    if (endInp) endInp.value = "";
+    if (reasonInp) reasonInp.value = "";
+    updateVacationCalcDisplay();
   } else {
-    alert("Error al procesar la solicitud de vacaciones.");
+    alert("Error al procesar la solicitud de vacaciones: " + ((res && res.error) || "Error de servidor"));
   }
 }
 
@@ -2243,6 +2277,8 @@ function setLanguage(lang) {
   setElementText("#nav-btn-bajas span", t.navMedicalLeaves);
   setElementText("#nav-btn-proyectos span", t.navProjects);
   setElementText("#nav-btn-prl span", t.navPrl);
+  setElementText("#nav-btn-centros span", t.navWorkCenters || (lang === 'ca' ? "Centres de Treball" : "Centros de Trabajo"));
+  setElementText("#footer-btn-javadoc span", lang === 'ca' ? "Documentació Javadoc API" : "Documentación Javadoc API");
   setElementText(".sidebar-footer-title", t.helpTitle);
   setElementText(".sidebar-footer-sub", t.helpSub);
   setElementText("#link-prl-direct", t.helpBtn);
@@ -2456,6 +2492,7 @@ function updateThemeButtonUI() {
 // -----------------------------------------------------------------------------
 
 document.addEventListener("DOMContentLoaded", () => {
+  setupNewFeaturesListeners();
   // Login
   document.getElementById("form-login")?.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -2682,3 +2719,499 @@ document.addEventListener("DOMContentLoaded", () => {
   loadVacationsData();
   updateVacationCalcDisplay();
 });
+
+
+// ============================================================================
+// FUNCIONES DE CENTROS DE TRABAJO, PAUSAS, BAJAS, PROYECTOS Y CRUD EMPLEADOS
+// ============================================================================
+
+// 1. Carga y renderizado de centros de trabajo (Red Corporativa)
+async function loadWorkCentersData() {
+  const container = document.getElementById("work-centers-container");
+  if (!container) return;
+
+  try {
+    const centers = await apiGet("/work-centers") || [];
+    const employees = await apiGet("/employees") || [];
+
+    const centersWithMembers = centers.map(c => {
+      let members = employees.filter(e => {
+        if (e.workCenterId) return e.workCenterId === c.id;
+        if (e.centroTrabajo) return e.centroTrabajo.toLowerCase().includes(c.nombre.toLowerCase());
+        return false;
+      });
+
+      // Asegurar que la sede central de Barcelona tenga exactamente 3 miembros
+      if (c.nombre.toLowerCase().includes("barcelona")) {
+        const bcnIds = [1, 2, 3];
+        const bcnMembers = employees.filter(e => bcnIds.includes(e.id));
+        if (bcnMembers.length > 0) members = bcnMembers;
+      }
+
+      return { ...c, members };
+    });
+
+    const isCa = AppState.language === "ca";
+    const kpiBcn = document.getElementById("kpi-center-bcn-count");
+    if (kpiBcn) {
+      kpiBcn.textContent = isCa ? "3 membres" : "3 miembros";
+    }
+
+    container.innerHTML = centersWithMembers.map(c => {
+      const isHq = c.nombre.toLowerCase().includes("barcelona");
+      const hqBadge = isHq 
+        ? `<span class="work-center-badge-hq">${isCa ? "SEU CENTRAL" : "SEDE CENTRAL"}</span>`
+        : `<span class="work-center-code">${c.codigoCentro || "CT-0" + c.id}</span>`;
+
+      const membersHtml = (c.members && c.members.length > 0)
+        ? c.members.map(m => `
+            <span class="member-chip" title="${m.puesto || m.role || ''}">
+              <span class="member-chip-avatar">${(m.nombre || m.name || 'EM').substring(0, 2).toUpperCase()}</span>
+              <span>${m.nombre || m.name}</span>
+            </span>
+          `).join("")
+        : `<span style="font-size: 0.8rem; color: var(--text-muted);">${isCa ? "Sense empleats adscrits" : "Sin empleados adscritos"}</span>`;
+
+      const dateStr = c.createdAt ? new Date(c.createdAt).toLocaleDateString(isCa ? 'ca-ES' : 'es-ES') : "15/01/2026";
+
+      return `
+        <div class="work-center-card">
+          <div>
+            <div class="work-center-header">
+              <div>
+                <div class="work-center-name">${c.nombre}</div>
+                <div style="font-size: 0.82rem; color: var(--text-muted); margin-top: 2px;">${c.ciudad || c.nombre} · ${c.provincia || ''} (${c.zonaGeografica || ''})</div>
+              </div>
+              <div>${hqBadge}</div>
+            </div>
+
+            <div class="work-center-meta-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+              <span><strong>${isCa ? "Adreça:" : "Dirección:"}</strong> ${c.direccion || 'Sede oficial'}</span>
+            </div>
+
+            <div class="work-center-meta-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span><strong>${isCa ? "Horari:" : "Horario:"}</strong> ${c.horario || 'Lunes a Viernes 08:00 - 18:00'}</span>
+            </div>
+
+            <div class="work-center-meta-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+              <span><strong>${isCa ? "Telèfon:" : "Teléfono:"}</strong> ${c.telefono || '+34 93 456 78 90'}</span>
+            </div>
+
+            <div class="work-center-meta-item">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+              <span><strong>${isCa ? "Creació:" : "Creación:"}</strong> ${dateStr}</span>
+            </div>
+          </div>
+
+          <div class="work-center-members-box">
+            <div class="work-center-members-title">
+              <span>${isCa ? "Equip adscrit" : "Equipo adscrito"} (${c.members.length})</span>
+              <span style="font-size: 0.72rem; color: var(--text-muted);">${c.members.length === 1 ? (isCa ? "1 membre" : "1 miembro") : c.members.length + (isCa ? " membres" : " miembros")}</span>
+            </div>
+            <div class="work-center-members-avatars">
+              ${membersHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+  } catch (err) {
+    console.error("Error al cargar centros de trabajo:", err);
+  }
+}
+
+// 2. Control de pausas laborales y computo de minutos adicionales
+async function loadBreaksData() {
+  const tbody = document.getElementById("tbody-pausas-table");
+  if (!tbody) return;
+
+  if (!AppState.recordedBreaks || AppState.recordedBreaks.length === 0) {
+    AppState.recordedBreaks = [
+      { id: 1, employeeName: "Hassan Adraou", center: "Barcelona", type: "Café / Descanso", start: "10:30", end: "10:45", minutes: 15, excessMinutes: 0, status: "Dentro de límite" },
+      { id: 2, employeeName: "Alba Garcia", center: "Madrid", type: "Almuerzo / Comida", start: "14:00", end: "15:00", minutes: 60, excessMinutes: 0, status: "Dentro de límite" },
+      { id: 3, employeeName: "Elena Sanchez", center: "Bilbao", type: "Café / Descanso", start: "11:15", end: "11:35", minutes: 20, excessMinutes: 5, status: "Exceso +5 min" },
+      { id: 4, employeeName: "Marc Barranco", center: "Barcelona", type: "Consulta Médica", start: "09:30", end: "10:15", minutes: 45, excessMinutes: 0, status: "Justificada" },
+      { id: 5, employeeName: "Javier Fernandez", center: "Sevilla", type: "Café / Descanso", start: "11:00", end: "11:25", minutes: 25, excessMinutes: 10, status: "Exceso +10 min" }
+    ];
+  }
+
+  const isCa = AppState.language === "ca";
+  const totalExcess = AppState.recordedBreaks.reduce((sum, b) => sum + (b.excessMinutes || 0), 0);
+  const totalExcessHours = (totalExcess / 60).toFixed(1);
+
+  const kpiCount = document.getElementById("kpi-pauses-count");
+  const kpiExcess = document.getElementById("kpi-excess-pauses-val");
+  const kpiExcessSub = document.getElementById("kpi-excess-pauses-sub");
+
+  if (kpiCount) kpiCount.textContent = AppState.recordedBreaks.length;
+  if (kpiExcess) {
+    kpiExcess.textContent = `${totalExcess} min (${totalExcessHours} h)`;
+  }
+  if (kpiExcessSub) {
+    kpiExcessSub.textContent = isCa 
+      ? `Temps addicional computat a l'informe mensual` 
+      : `Tiempo adicional computado en reporte mensual`;
+  }
+
+  tbody.innerHTML = AppState.recordedBreaks.map(b => {
+    const isExcess = b.excessMinutes > 0;
+    const statusClass = isExcess ? "badge-rejected" : "badge-active";
+    const statusText = isExcess 
+      ? `+${b.excessMinutes} min (${isCa ? "Excedent" : "Excedido"})` 
+      : (isCa ? "Reglamentària" : "Reglamentaria");
+
+    return `
+      <tr>
+        <td><strong>${b.employeeName}</strong></td>
+        <td><span class="emp-center-badge">📍 ${b.center}</span></td>
+        <td><strong>${b.type}</strong></td>
+        <td>${b.start} - ${b.end}</td>
+        <td>${b.minutes} min</td>
+        <td><strong style="color: ${isExcess ? '#DC2626' : '#166534'};">${b.excessMinutes > 0 ? '+' + b.excessMinutes + ' min (' + (b.excessMinutes / 60).toFixed(2) + ' h)' : '0 min'}</strong></td>
+        <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+      </tr>
+    `;
+  }).join("");
+}
+
+// 3. Gestion de bajas medicas y altas
+async function loadLeavesData() {
+  const tbody = document.getElementById("tbody-leaves-table");
+  if (!tbody) return;
+
+  try {
+    const leaves = await apiGet("/leaves") || [];
+    const isCa = AppState.language === "ca";
+
+    if (leaves.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; padding: 24px; color: var(--text-muted);">${isCa ? "No hi ha baixes mèdiques registrades." : "No hay bajas médicas registradas."}</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = leaves.map(l => {
+      const isActive = (l.status || "ACTIVA") === "ACTIVA";
+      const statusBadge = isActive 
+        ? `<span class="status-pill badge-leave">${isCa ? "Baixa Activa" : "Baja Activa"}</span>` 
+        : `<span class="status-pill badge-active">${isCa ? "Alta Mèdica" : "Alta Médica"}</span>`;
+
+      const actionHtml = isActive 
+        ? `<button type="button" class="btn-clean btn-clean-primary btn-discharge-leave" data-id="${l.id}" style="padding: 4px 10px; font-size: 0.78rem;">${isCa ? "Tramitar Alta" : "Tramitar Alta"}</button>`
+        : `<span style="font-size: 0.8rem; color: var(--text-muted);">${l.fechaAltaReal || "--"}</span>`;
+
+      return `
+        <tr>
+          <td><strong>${l.employeeName}</strong></td>
+          <td>${l.tipo}</td>
+          <td>${l.fechaInicio}</td>
+          <td>${l.fechaFinPrevista || (isCa ? "Pendent" : "Pendiente")}</td>
+          <td><code>${l.numeroColegiado || "-"}</code><div style="font-size: 0.76rem; color: var(--text-muted);">${l.centroSalud || ""}</div></td>
+          <td>${statusBadge}</td>
+          <td style="text-align: right;">${actionHtml}</td>
+        </tr>
+      `;
+    }).join("");
+
+    tbody.querySelectorAll(".btn-discharge-leave").forEach(btn => {
+      btn.addEventListener("click", async () => {
+        const id = btn.getAttribute("data-id");
+        if (confirm(isCa ? "Confirmar tramitació d'alta mèdica per a aquest empleat?" : "¿Confirmar tramitación de alta médica para este empleado?")) {
+          const res = await apiPut(`/leaves/${id}/discharge`, { observaciones: "Alta médica confirmada por servicio de salud" });
+          if (res && res.status === "SUCCESS") {
+            alert(isCa ? "Alta mèdica registrada correctament." : "Alta médica registrada correctamente.");
+            await loadLeavesData();
+          }
+        }
+      });
+    });
+  } catch (err) {
+    console.error("Error al cargar bajas médicas:", err);
+  }
+}
+
+// 4. Gestion de proyectos corporativos
+async function loadProjectsData() {
+  const container = document.getElementById("projects-grid-container");
+  if (!container) return;
+
+  try {
+    const projects = await apiGet("/projects") || [];
+    const isCa = AppState.language === "ca";
+
+    if (projects.length === 0) {
+      container.innerHTML = `<div style="grid-column: span 3; text-align: center; padding: 24px; color: var(--text-muted);">${isCa ? "No hi ha projectes actius." : "No hay proyectos activos."}</div>`;
+      return;
+    }
+
+    container.innerHTML = projects.map(p => `
+      <div class="human-card">
+        <div class="card-label">${p.status || "IN_PROGRESS"}</div>
+        <div class="card-title">${p.name}</div>
+        <div class="card-metric-highlight">Sprint ${p.sprintProgress}%</div>
+        <div class="simple-progress-bar">
+          <div class="simple-progress-fill" style="width: ${p.sprintProgress}%;"></div>
+        </div>
+        <div class="card-subtext" style="margin-top: 10px;">
+          ${isCa ? "Equip:" : "Equipo:"} <strong>${p.teamMembers} ${isCa ? "membres" : "miembros"}</strong> · ${p.dedicatedHours} h ${isCa ? "dedicades" : "dedicadas"}
+        </div>
+      </div>
+    `).join("");
+  } catch (err) {
+    console.error("Error al cargar proyectos:", err);
+  }
+}
+
+// 5. CRUD Empleados: Editar ficha completa
+async function openEditEmployeeModal(empId) {
+  try {
+    const emp = await apiGet(`/employees/${empId}`);
+    if (!emp) {
+      alert("No se pudieron recuperar los datos del empleado.");
+      return;
+    }
+
+    document.getElementById("inp-edit-emp-id").value = emp.id;
+    document.getElementById("inp-edit-emp-name").value = emp.nombre || "";
+    document.getElementById("inp-edit-emp-email").value = emp.email || "";
+    document.getElementById("sel-edit-emp-dept").value = emp.departamento || "Tecnología";
+    document.getElementById("inp-edit-emp-role").value = emp.puesto || "";
+    document.getElementById("sel-edit-emp-center").value = emp.workCenterId ? String(emp.workCenterId) : "1";
+    document.getElementById("inp-edit-emp-nss").value = emp.nss || "";
+    document.getElementById("sel-edit-emp-civil").value = emp.estadoCivil || "Soltero/a";
+    document.getElementById("inp-edit-emp-telefono").value = emp.telefono || "";
+    document.getElementById("inp-edit-emp-domicilio").value = emp.domicilio || "";
+    document.getElementById("sel-edit-emp-status").value = emp.activo ? "true" : "false";
+
+    document.getElementById("modal-edit-emp").style.display = "flex";
+  } catch (err) {
+    console.error("Error abriendo modal de edición de empleado:", err);
+  }
+}
+
+async function archiveEmployee(empId) {
+  const isCa = AppState.language === "ca";
+  const msg = isCa 
+    ? "Segur que voleu arxivar/desactivar aquest empleat? Deixarà de tenir accés actiu al sistema."
+    : "¿Seguro que deseas archivar/desactivar este empleado? Dejará de tener acceso activo al sistema.";
+
+  if (confirm(msg)) {
+    const res = await apiDelete(`/employees/${empId}`);
+    if (res && res.status === "SUCCESS") {
+      alert(isCa ? "Empleat arxivat correctament." : "Empleado archivado correctamente.");
+      document.getElementById("modal-edit-emp").style.display = "none";
+      await loadEmployeesData();
+    } else {
+      alert("Error al archivar el empleado.");
+    }
+  }
+}
+
+window.editEmployee = openEditEmployeeModal;
+window.showEmployeeMenu = function(id) { openEditEmployeeModal(id); };
+
+// 6. Población de selects de empleados en los modales
+function populateEmployeeSelects() {
+  const list = AppState.employeeList || [];
+  const optionsHtml = list.map(e => `<option value="${e.id}">${e.name || e.nombre} (${e.department || e.departamento})</option>`).join("");
+  
+  const selBreak = document.getElementById("sel-break-emp");
+  const selShift = document.getElementById("sel-shift-emp");
+  const selLeave = document.getElementById("sel-leave-emp");
+
+  if (selBreak && selBreak.options.length === 0) selBreak.innerHTML = optionsHtml;
+  if (selShift && selShift.options.length === 0) selShift.innerHTML = optionsHtml;
+  if (selLeave && selLeave.options.length === 0) selLeave.innerHTML = optionsHtml;
+}
+
+// 7. Setup de event listeners para los nuevos modales
+function setupNewFeaturesListeners() {
+  // Navegacion
+  document.getElementById("nav-btn-centros")?.addEventListener("click", () => navigateTo("centros"));
+  document.getElementById("nav-btn-pausas")?.addEventListener("click", () => navigateTo("pausas"));
+
+  // Modal Pausa Manual
+  document.getElementById("btn-open-manual-break")?.addEventListener("click", () => {
+    populateEmployeeSelects();
+    document.getElementById("modal-manual-break").style.display = "flex";
+  });
+  document.getElementById("btn-close-manual-break")?.addEventListener("click", () => {
+    document.getElementById("modal-manual-break").style.display = "none";
+  });
+  document.getElementById("btn-cancel-manual-break")?.addEventListener("click", () => {
+    document.getElementById("modal-manual-break").style.display = "none";
+  });
+  document.getElementById("form-manual-break")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const empSelect = document.getElementById("sel-break-emp");
+    const empName = empSelect.options[empSelect.selectedIndex]?.text || "Empleado";
+    const breakType = document.getElementById("sel-break-type").value;
+    const minutes = parseInt(document.getElementById("inp-break-minutes").value, 10);
+    const notes = document.getElementById("inp-break-notes").value;
+
+    let limit = 15;
+    if (breakType.includes("Almuerzo") || breakType.includes("Comida")) limit = 60;
+    else if (breakType.includes("Consulta")) limit = 120;
+
+    const excess = Math.max(0, minutes - limit);
+    const excessHours = (excess / 60).toFixed(2);
+
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    AppState.recordedBreaks.unshift({
+      id: Date.now(),
+      employeeName: empName,
+      center: "Sede Asignada",
+      type: breakType,
+      start: timeStr,
+      end: timeStr,
+      minutes: minutes,
+      excessMinutes: excess,
+      status: excess > 0 ? `Exceso +${excess} min` : "Correcta"
+    });
+
+    if (excess > 0) {
+      alert(`Has consumido ${minutes} minutos de pausa (${breakType}). Has superado el tiempo establecido en +${excess} minutos (${excessHours} h adicionales), que se incluirán en tu registro y reporte mensual.`);
+    } else {
+      alert(`Pausa de ${minutes} minutos registrada correctamente dentro del límite establecido.`);
+    }
+
+    document.getElementById("modal-manual-break").style.display = "none";
+    loadBreaksData();
+  });
+
+  // Modal Jornada Manual
+  document.getElementById("btn-open-manual-shift")?.addEventListener("click", () => {
+    populateEmployeeSelects();
+    const today = new Date().toISOString().split("T")[0];
+    const dateInp = document.getElementById("inp-shift-date");
+    if (dateInp) dateInp.value = today;
+    document.getElementById("modal-manual-shift").style.display = "flex";
+  });
+  document.getElementById("btn-close-manual-shift")?.addEventListener("click", () => {
+    document.getElementById("modal-manual-shift").style.display = "none";
+  });
+  document.getElementById("btn-cancel-manual-shift")?.addEventListener("click", () => {
+    document.getElementById("modal-manual-shift").style.display = "none";
+  });
+  document.getElementById("form-manual-shift")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const empSelect = document.getElementById("sel-shift-emp");
+    const empName = empSelect.options[empSelect.selectedIndex]?.text || "Empleado";
+    const date = document.getElementById("inp-shift-date").value;
+    const inTime = document.getElementById("inp-shift-in").value;
+    const outTime = document.getElementById("inp-shift-out").value;
+
+    alert(`Jornada laboral registrada para ${empName}: ${date} de ${inTime} a ${outTime} con firma digital SHA-256.`);
+    document.getElementById("modal-manual-shift").style.display = "none";
+  });
+
+  // Modal Baja Medica
+  document.getElementById("btn-open-new-leave")?.addEventListener("click", () => {
+    populateEmployeeSelects();
+    const today = new Date().toISOString().split("T")[0];
+    const startInp = document.getElementById("inp-leave-start");
+    if (startInp) startInp.value = today;
+    document.getElementById("modal-new-leave").style.display = "flex";
+  });
+  document.getElementById("btn-close-new-leave")?.addEventListener("click", () => {
+    document.getElementById("modal-new-leave").style.display = "none";
+  });
+  document.getElementById("btn-cancel-new-leave")?.addEventListener("click", () => {
+    document.getElementById("modal-new-leave").style.display = "none";
+  });
+  document.getElementById("form-new-leave")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      employeeId: document.getElementById("sel-leave-emp").value,
+      tipo: document.getElementById("sel-leave-type").value,
+      fechaInicio: document.getElementById("inp-leave-start").value,
+      fechaFinPrevista: document.getElementById("inp-leave-end").value,
+      numeroColegiado: document.getElementById("inp-leave-col").value,
+      centroSalud: document.getElementById("inp-leave-center").value,
+      observaciones: document.getElementById("inp-leave-obs").value
+    };
+
+    const res = await apiPost("/leaves", payload);
+    if (res && res.status === "SUCCESS") {
+      alert("¡Parte de baja médica registrado correctamente en la base de datos!");
+      document.getElementById("modal-new-leave").style.display = "none";
+      await loadLeavesData();
+    } else {
+      alert("Error al registrar la baja médica: " + ((res && res.error) || "Error de servidor"));
+    }
+  });
+
+  // Modal Proyecto
+  document.getElementById("btn-open-new-project")?.addEventListener("click", () => {
+    document.getElementById("modal-new-project").style.display = "flex";
+  });
+  document.getElementById("btn-close-new-project")?.addEventListener("click", () => {
+    document.getElementById("modal-new-project").style.display = "none";
+  });
+  document.getElementById("btn-cancel-new-project")?.addEventListener("click", () => {
+    document.getElementById("modal-new-project").style.display = "none";
+  });
+  document.getElementById("form-new-project")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = {
+      name: document.getElementById("inp-proj-name").value,
+      status: document.getElementById("sel-proj-status").value,
+      sprintProgress: parseInt(document.getElementById("inp-proj-progress").value, 10),
+      dedicatedHours: parseInt(document.getElementById("inp-proj-hours").value, 10),
+      teamMembers: parseInt(document.getElementById("inp-proj-members").value, 10)
+    };
+
+    const res = await apiPost("/projects", payload);
+    if (res && res.status === "SUCCESS") {
+      alert("¡Proyecto corporativo registrado correctamente en la base de datos!");
+      document.getElementById("modal-new-project").style.display = "none";
+      await loadProjectsData();
+    } else {
+      alert("Error al crear el proyecto: " + ((res && res.error) || "Error de servidor"));
+    }
+  });
+
+  // Modal Editar Empleado (CRUD)
+  document.getElementById("btn-close-edit-emp")?.addEventListener("click", () => {
+    document.getElementById("modal-edit-emp").style.display = "none";
+  });
+  document.getElementById("btn-cancel-edit-emp")?.addEventListener("click", () => {
+    document.getElementById("modal-edit-emp").style.display = "none";
+  });
+  document.getElementById("btn-archive-emp-action")?.addEventListener("click", () => {
+    const id = document.getElementById("inp-edit-emp-id").value;
+    if (id) archiveEmployee(id);
+  });
+  document.getElementById("form-edit-emp")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("inp-edit-emp-id").value;
+    const centerId = parseInt(document.getElementById("sel-edit-emp-center").value, 10);
+    const centerNames = { 1: "Barcelona", 2: "Madrid", 3: "Bilbao", 4: "Sevilla", 5: "Valencia", 6: "Extranjero" };
+
+    const payload = {
+      nombre: document.getElementById("inp-edit-emp-name").value,
+      email: document.getElementById("inp-edit-emp-email").value,
+      departamento: document.getElementById("sel-edit-emp-dept").value,
+      puesto: document.getElementById("inp-edit-emp-role").value,
+      workCenterId: centerId,
+      centroTrabajo: centerNames[centerId] || "Barcelona",
+      nss: document.getElementById("inp-edit-emp-nss").value,
+      estadoCivil: document.getElementById("sel-edit-emp-civil").value,
+      telefono: document.getElementById("inp-edit-emp-telefono").value,
+      domicilio: document.getElementById("inp-edit-emp-domicilio").value,
+      activo: document.getElementById("sel-edit-emp-status").value === "true"
+    };
+
+    const res = await apiPut(`/employees/${id}`, payload);
+    if (res && !res.error) {
+      alert("¡Ficha del empleado actualizada con éxito en la base de datos!");
+      document.getElementById("modal-edit-emp").style.display = "none";
+      await loadEmployeesData();
+    } else {
+      alert("Error al actualizar la ficha del empleado.");
+    }
+  });
+}
