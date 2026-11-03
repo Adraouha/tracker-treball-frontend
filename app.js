@@ -1,3 +1,120 @@
+
+// Carga recordatorios y avisos dinámicos desde la base de datos (Backend Railway)
+async function loadDashboardReminders() {
+  const container = document.getElementById("notices-list-container");
+  if (!container) return;
+
+  const empId = (AppState.currentUser && AppState.currentUser.id) ? AppState.currentUser.id : 1;
+  const rem = await apiGetReminders(empId);
+  if (!rem) return;
+
+  let itemsHtml = "";
+
+  // 1. Proxima pausa si hay
+  if (rem.proximaPausa) {
+    itemsHtml += `
+      <div class="notice-item">
+        <span class="notice-bullet" style="background-color: #f59e0b;"></span>
+        <div>
+          <div class="notice-text-title">${rem.proximaPausa.tipo} (${rem.proximaPausa.horaSugerida || "Horario sugerido"})</div>
+          <div class="notice-text-desc">${rem.proximaPausa.descripcion}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 2. Proximo Festivo segun centro de trabajo y zona geografica
+  if (rem.proximoFestivo) {
+    itemsHtml += `
+      <div class="notice-item">
+        <span class="notice-bullet" style="background-color: var(--primary);"></span>
+        <div>
+          <div class="notice-text-title">Próximo festivo: ${rem.proximoFestivo.nombre}</div>
+          <div class="notice-text-desc">${rem.proximoFestivo.fecha} · En ${rem.proximoFestivo.diasRestantes} días (${rem.proximoFestivo.tipo})</div>
+        </div>
+      </div>
+    `;
+  }
+
+  // 3. Tiempo y Clima en el centro asignado
+  if (rem.tiempoYClima) {
+    itemsHtml += `
+      <div class="notice-item">
+        <span class="notice-bullet" style="background-color: #06b6d4;"></span>
+        <div>
+          <div class="notice-text-title">Tiempo y clima en ${rem.tiempoYClima.ciudad}: ${rem.tiempoYClima.temperaturaStr}</div>
+          <div class="notice-text-desc">${rem.tiempoYClima.descripcion} · Sincronizado con estación meteorológica oficial</div>
+        </div>
+      </div>
+    `;
+    const tempEl = document.getElementById("weather-temp");
+    const descEl = document.getElementById("weather-desc");
+    const locEl = document.getElementById("weather-location");
+    if (tempEl) tempEl.textContent = rem.tiempoYClima.temperaturaStr;
+    if (descEl) descEl.textContent = rem.tiempoYClima.descripcion;
+    if (locEl) locEl.textContent = rem.tiempoYClima.ciudad;
+  }
+
+  // 4. Cumpleanos de compañeros en los proximos 7 dias
+  if (rem.cumpleanosCompaneros && rem.cumpleanosCompaneros.length > 0) {
+    rem.cumpleanosCompaneros.forEach(c => {
+      itemsHtml += `
+        <div class="notice-item">
+          <span class="notice-bullet" style="background-color: #ec4899;"></span>
+          <div>
+            <div class="notice-text-title">🎂 Cumpleaños de ${c.nombre}</div>
+            <div class="notice-text-desc">${c.puesto} (${c.departamento}) · Fecha: ${c.fechaNacimiento}</div>
+          </div>
+        </div>
+      `;
+    });
+  }
+
+  // 5. Proxima reunion si hay
+  if (rem.proximaReunion) {
+    itemsHtml += `
+      <div class="notice-item">
+        <span class="notice-bullet" style="background-color: var(--success);"></span>
+        <div>
+          <div class="notice-text-title">${rem.proximaReunion.titulo}</div>
+          <div class="notice-text-desc">${rem.proximaReunion.fechaHora} · ${rem.proximaReunion.sala} (${rem.proximaReunion.organizador})</div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (itemsHtml) {
+    container.innerHTML = itemsHtml;
+  }
+}
+
+// Carga reportes semanales y mensuales de pausas y tiempo adicional desde el Backend
+async function loadEmployeeReports() {
+  const empId = (AppState.currentUser && AppState.currentUser.id) ? AppState.currentUser.id : 1;
+  const reports = await apiGetReports(empId);
+  if (!reports) return;
+
+  if (reports.semanal) {
+    const sem = reports.semanal;
+    const horasEl = document.getElementById("rep-sem-horas");
+    const pausasEl = document.getElementById("rep-sem-pausas");
+    const adicEl = document.getElementById("rep-sem-adicional");
+    if (horasEl) horasEl.textContent = `${sem.totalHorasTrabajadas || 38.5} h`;
+    if (pausasEl) pausasEl.textContent = `${sem.totalPausaMinutos || 0} min`;
+    if (adicEl) adicEl.textContent = sem.tiempoAdicionalHorasMinutos || `${Math.floor((sem.tiempoAdicionalMinutos || 0) / 60)} h ${(sem.tiempoAdicionalMinutos || 0) % 60} min`;
+  }
+
+  if (reports.mensual) {
+    const men = reports.mensual;
+    const horasEl = document.getElementById("rep-men-horas");
+    const pausasEl = document.getElementById("rep-men-pausas");
+    const adicEl = document.getElementById("rep-men-adicional");
+    if (horasEl) horasEl.textContent = `${men.totalHorasTrabajadas || 154.0} h`;
+    if (pausasEl) pausasEl.textContent = `${men.totalPausaMinutos || 0} min`;
+    if (adicEl) adicEl.textContent = men.tiempoAdicionalHorasMinutos || `${Math.floor((men.tiempoAdicionalMinutos || 0) / 60)} h ${(men.tiempoAdicionalMinutos || 0) % 60} min`;
+  }
+}
+
 // Controlador principal de la aplicacion Tracker Treball
 // Autor: Hassan Adraou
 
@@ -815,7 +932,9 @@ async function confirmStartBreak() {
   updateShiftUI();
   startBreakTimer();
 
-  await apiPost("/attendance/start-break", {
+  const empId = AppState.currentUser ? AppState.currentUser.id : 1;
+  await apiStartBreak(empId, breakType, breakMinutes);
+  if (false) await apiPost("/attendance/start-break", {
     type: breakType,
     typeName: breakTypeName,
     limitMinutes: breakMinutes,
@@ -879,13 +998,24 @@ async function endBreak() {
   let excessMin = 0;
   let comment = "Dentro de tiempo reglamentario";
 
-  if (totalSeconds > limitSeconds) {
+  // Llamar al backend para finalizar y auditar el tiempo en BD
+  const empId = AppState.currentUser ? AppState.currentUser.id : 1;
+  const backendRes = await apiFinishBreak(empId);
+
+  let notifyMsg = "";
+  if (backendRes && backendRes.minutosAdicionales > 0) {
+    excessMin = backendRes.minutosAdicionales;
+    comment = `+${excessMin} minutos de pausa`;
+    notifyMsg = backendRes.mensajeNotificacion || `Has consumido ${backendRes.duracionMinutos} minutos de pausa (${excessMin} adicionales sobre los ${backendRes.tiempoEstipuladoMinutos} estipulados)`;
+  } else if (totalSeconds > limitSeconds) {
     excessMin = Math.max(1, Math.round((totalSeconds - limitSeconds) / 60));
     comment = `+${excessMin} minutos de pausa`;
-    
-    // Notificacion formal al usuario con los minutos adicionales
-    const msg = t.breakExcessAlert.replace(/\{N\}/g, excessMin);
-    alert(msg);
+    notifyMsg = `Has consumido ${durationMin} minutos de pausa (${excessMin} adicionales sobre los ${b.limitMinutes} estipulados)`;
+  }
+
+  // Notificacion formal al empleado por exceso
+  if (excessMin > 0) {
+    alert(`⚠️ CONTROL DE TIEMPO DE DESCANSO:\n${notifyMsg}\n\nSe ha registrado en tu historial de asistencia para el cómputo del reporte semanal y mensual.`);
   }
 
   const finishedRecord = {
@@ -910,7 +1040,8 @@ async function endBreak() {
   updateShiftUI();
   startShiftTimer();
 
-  await apiPost("/attendance/end-break", finishedRecord);
+  // Actualizar reportes en vivo
+  loadEmployeeReports();
 }
 
 // Inserta fila de pausa en tiempo real en la tabla de la vista de Pausas
@@ -1072,7 +1203,13 @@ function normalizeEmployee(emp) {
     activo: status === "Activo",
     avatar,
     privilege,
-    centroTrabajo: emp.centroTrabajo || emp.centro_trabajo || "Oficina Central Vic"
+    centroTrabajo: emp.centroTrabajo || emp.centro_trabajo || "Barcelona",
+    workCenterId: emp.workCenterId || emp.work_center_id || 1,
+    nss: emp.nss || "",
+    estadoCivil: emp.estadoCivil || emp.estado_civil || "Soltero/a",
+    domicilio: emp.domicilio || "",
+    telefono: emp.telefono || "+34 600 000 000",
+    fechaNacimiento: emp.fechaNacimiento || emp.fecha_nacimiento || "1995-01-01"
   };
 }
 
@@ -1150,9 +1287,9 @@ function renderEmployeeTable(list) {
         </td>
         <td>
           <div class="emp-name-text">${emp.name}</div>
-          <div class="emp-email-text">${emp.email}</div>
+          <div class="emp-email-text">${emp.email} ${emp.nss ? '<span style="font-size: 0.72rem; color: #64748B; font-family: monospace;">· NSS: ' + emp.nss + '</span>' : ''}</div>
         </td>
-        <td>${emp.department}</td>
+        <td>${emp.department} <span class="emp-center-badge" style="display:inline-block; font-size: 0.75rem; background: #EEF2F6; color: #334155; padding: 2px 6px; border-radius: 4px; margin-top: 2px; font-weight: 500;">📍 ${emp.centroTrabajo || 'Barcelona'}</span></td>
         <td>${emp.role}</td>
         <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
         <td style="text-align: right;">
@@ -1181,6 +1318,7 @@ function filterEmployees() {
   const dept = document.getElementById("filter-dept")?.value || "";
   const status = document.getElementById("filter-status")?.value || "";
   const supervisor = document.getElementById("filter-supervisor")?.value || "";
+  const center = document.getElementById("filter-center")?.value || "";
 
   AppState.filteredEmployees = AppState.employeeList.filter(emp => {
     // Filtro de pestañas superiores (Todos / Activos / Archivados)
@@ -1297,6 +1435,14 @@ function openProfileModal() {
   if (deptEl) deptEl.textContent = user.department || "Tecnología";
   const statusEl = document.getElementById("profile-status-val");
   if (statusEl) statusEl.textContent = `${user.status || 'Activo'} · Verificat`;
+  const centerEl = document.getElementById("profile-center-val");
+  if (centerEl) centerEl.textContent = user.centroTrabajo || "Barcelona";
+  const nssEl = document.getElementById("profile-nss-val");
+  if (nssEl) nssEl.textContent = user.nss || "280000000145";
+  const civilEl = document.getElementById("profile-civil-val");
+  if (civilEl) civilEl.textContent = user.estadoCivil || "Soltero/a";
+  const addressEl = document.getElementById("profile-address-val");
+  if (addressEl) addressEl.textContent = `${user.domicilio || 'Carrer Major 4, Barcelona'} · ${user.telefono || '+34 600 000 000'}`;
 
   applyUserAvatar();
 
@@ -1530,22 +1676,38 @@ async function submitNewEmployee(e) {
   const email = document.getElementById("inp-emp-email").value;
   const department = document.getElementById("sel-emp-dept").value;
   const role = document.getElementById("inp-emp-role").value;
+  const workCenterId = parseInt(document.getElementById("sel-emp-center")?.value || "1", 10);
+  const nss = document.getElementById("inp-emp-nss")?.value || "";
+  const estadoCivil = document.getElementById("sel-emp-civil")?.value || "Soltero/a";
+  const fechaNacimiento = document.getElementById("inp-emp-dob")?.value || "1992-05-15";
+  const domicilio = document.getElementById("inp-emp-domicilio")?.value || "";
+  const telefono = document.getElementById("inp-emp-telefono")?.value || "+34 600 000 000";
 
-  const res = await apiPost("/employees", { name, email, department, role });
-  const newEmp = (res && res.employee) ? res.employee : {
-    id: AppState.employeeList.length + 1,
-    name, email, department, role, status: "Activo", avatar: name.substring(0, 2).toUpperCase()
-  };
+  const res = await apiPost("/employees", {
+    name,
+    nombre: name,
+    email,
+    department,
+    departamento: department,
+    role,
+    puesto: role,
+    workCenterId,
+    nss,
+    estadoCivil,
+    fechaNacimiento,
+    domicilio,
+    telefono
+  });
 
-  AppState.employeeList.unshift(newEmp);
-  renderEmployeeTable(AppState.employeeList);
-  
-  const activosEl = document.getElementById("kpi-emp-activos");
-  if (activosEl) activosEl.textContent = parseInt(activosEl.textContent || "128", 10) + 1;
+  const pwdNotice = (res && res.generatedPassword) 
+    ? `\n\n🔑 Contraseña de acceso autogenerada:\n${res.generatedPassword}\n(El empleado podrá modificarla al iniciar sesión en su perfil)`
+    : "";
+
+  alert(`✅ Empleado ${name} creado y guardado con éxito en la base de datos.${pwdNotice}`);
 
   closeNewEmpModal();
   document.getElementById("form-create-emp")?.reset();
-  alert(`Empleado ${name} creado con exito en el sistema.`);
+  await loadEmployeesData();
 }
 
 function editEmployee(id) {
@@ -2295,7 +2457,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const email = document.getElementById("login-email")?.value;
     const pwd = document.getElementById("login-password")?.value;
 
-    const res = await apiPost("/auth/login", { email, password: pwd });
+    const errorEl = document.getElementById("login-error-msg");
+    if (errorEl) errorEl.style.display = "none";
+    const res = await apiLogin(email, pwd);
+    if (!res || res.status !== "SUCCESS" || !res.user) {
+      if (errorEl) {
+        errorEl.textContent = (res && res.error) ? res.error : "Credenciales no válidas. Revisa tu email y contraseña.";
+        errorEl.style.display = "block";
+      } else {
+        alert("Credenciales no válidas.");
+      }
+      return;
+    }
+    if (res.token) localStorage.setItem("tt_token", res.token);
+    localStorage.setItem("tt_user", JSON.stringify(res.user));
     if (res.user) {
       AppState.currentUser = res.user;
       document.getElementById("nav-user-name").textContent = res.user.name;

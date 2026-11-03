@@ -63,7 +63,7 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
               </svg>
             </span>
-            <input id="login-password" class="login-input" type="password" value="Admin#2026!" placeholder="••••••••••••" required>
+            <input id="login-password" class="login-input" type="password" value="Tracker2026!" placeholder="••••••••••••" required>
             <span id="btn-toggle-pwd" class="login-input-eye">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -72,6 +72,8 @@
             </span>
           </div>
         </div>
+
+        <div id="login-error-msg" style="display:none; color: #dc2626; font-size: 0.85rem; margin-top: 10px; margin-bottom: 12px; background: #fee2e2; border: 1px solid #fca5a5; padding: 10px; border-radius: 6px; text-align: center;"></div>
 
         <div class="login-options-row">
           <label class="login-remember-me">
@@ -409,7 +411,7 @@
           <div class="cards-grid-2">
             <div class="human-card">
               <div class="card-label">Recordatorios y avisos</div>
-              <div class="notices-list">
+              <div class="notices-list" id="notices-list-container">
                 <div class="notice-item">
                   <span class="notice-bullet"></span>
                   <div>
@@ -595,6 +597,17 @@
               <option value="Activo">Activo</option>
               <option value="Vacaciones">Vacaciones</option>
               <option value="Baja">Baja</option>
+            </select>
+
+            
+            <select id="filter-center" class="emp-filter-select">
+              <option value="">Centro de Trabajo ⌄</option>
+              <option value="Madrid">Madrid</option>
+              <option value="Barcelona">Barcelona</option>
+              <option value="Bilbao">Bilbao</option>
+              <option value="Sevilla">Sevilla</option>
+              <option value="Valencia">Valencia</option>
+              <option value="Extranjero">Extranjero</option>
             </select>
 
             <select id="filter-supervisor" class="emp-filter-select">
@@ -789,121 +802,26 @@
               </tbody>
             </table>
           </div>
-        </section>
 
-        <!-- =================================================================
-             PANTALLA: PAUSAS (CONTROL DE DESCANSOS Y ERGONOMIA PRL)
-             ================================================================= -->
-        <section id="view-pausas" class="subview" style="display: none;">
-          <div class="emp-breadcrumb">
-            <span>Mi organización</span> &rsaquo; <span class="active">Pausas y Descansos</span>
-          </div>
-
-          <div class="employees-top-bar">
-            <div>
-              <h1 class="emp-page-title">Control de Pausas y Descansos</h1>
-              <p class="emp-page-sub">Monitorización de pausas de comida, descansos visuales obligatorios de PRL y pausas de café.</p>
-            </div>
-            <button class="btn-clean btn-clean-primary" type="button" onclick="alert('Registro rápido de pausa para el usuario actual activado.')">
-              <span>+ Registrar Pausa Manual</span>
-            </button>
-          </div>
-
-          <div class="emp-kpi-grid">
-            <div class="emp-kpi-card">
-              <div>
-                <div class="emp-kpi-label">Pausas activas ahora</div>
-                <div class="emp-kpi-number">2</div>
-                <div class="emp-kpi-note green">Descanso reglamentario de mediodía</div>
+          <!-- Tarjeta de Reporte Semanal y Mensual de Pausas y Horarios -->
+          <div class="human-card" style="margin-top: 24px;">
+            <div class="card-label">Reportes de Auditoría de Pausas y Horarios</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
+              <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px;">📊 Resumen Semanal</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Horas trabajadas:</span><strong id="rep-sem-horas">38.5 h</strong></div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Tiempo total en pausas:</span><strong id="rep-sem-pausas">120 min</strong></div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #CBD5E1; color: #DC2626;"><span>⚠️ Tiempo adicional consumido:</span><strong id="rep-sem-adicional">0 h 15 min</strong></div>
               </div>
-              <div class="emp-kpi-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
-                  <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"></path>
-                  <line x1="6" y1="2" x2="6" y2="4"></line>
-                  <line x1="10" y1="2" x2="10" y2="4"></line>
-                </svg>
+              <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px;">📅 Resumen Mensual</div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Horas trabajadas:</span><strong id="rep-men-horas">154.0 h</strong></div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Tiempo total en pausas:</span><strong id="rep-men-pausas">480 min</strong></div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #CBD5E1; color: #DC2626;"><span>⚠️ Tiempo adicional consumido:</span><strong id="rep-men-adicional">0 h 45 min</strong></div>
               </div>
             </div>
-
-            <div class="emp-kpi-card">
-              <div>
-                <div class="emp-kpi-label">Duración media diaria</div>
-                <div class="emp-kpi-number">24 min</div>
-                <div class="emp-kpi-note">Dentro del margen de convenio</div>
-              </div>
-              <div class="emp-kpi-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-              </div>
-            </div>
-
-            <div class="emp-kpi-card">
-              <div>
-                <div class="emp-kpi-label">Conformidad PRL</div>
-                <div class="emp-kpi-number">100%</div>
-                <div class="emp-kpi-note green">Descansos visuales cada 2h cumplidos</div>
-              </div>
-              <div class="emp-kpi-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
-                </svg>
-              </div>
-            </div>
-          </div>
-
-          <div class="emp-table-container" style="margin-top: 20px;">
-            <table class="emp-table">
-              <thead>
-                <tr>
-                  <th>Empleado</th>
-                  <th>Tipo de Descanso</th>
-                  <th>Límite</th>
-                  <th>Inicio</th>
-                  <th>Fin</th>
-                  <th>Duración</th>
-                  <th>Estado</th>
-                  <th>Observaciones / Auditoría</th>
-                </tr>
-              </thead>
-              <tbody id="pausas-table-body">
-                <tr>
-                  <td><strong>Eduardo Vázquez</strong></td>
-                  <td>Descanso Visual PVD (PRL)</td>
-                  <td>15 min</td>
-                  <td>11:15</td>
-                  <td>11:25</td>
-                  <td>10 min</td>
-                  <td><span class="status-pill badge-active">Completada</span></td>
-                  <td><span style="font-size: 0.82rem; color: var(--text-muted);">Dentro de tiempo reglamentario</span></td>
-                </tr>
-                <tr>
-                  <td><strong>Barbara Orduz Romero</strong></td>
-                  <td>Pausa de Café</td>
-                  <td>15 min</td>
-                  <td>10:45</td>
-                  <td>11:00</td>
-                  <td>15 min</td>
-                  <td><span class="status-pill badge-active">Completada</span></td>
-                  <td><span style="font-size: 0.82rem; color: var(--text-muted);">Dentro de tiempo reglamentario</span></td>
-                </tr>
-                <tr>
-                  <td><strong>David Vélez</strong></td>
-                  <td>Pausa de Almuerzo</td>
-                  <td>60 min</td>
-                  <td>13:30</td>
-                  <td>14:42</td>
-                  <td>72 min</td>
-                  <td><span class="status-pill badge-active">Completada</span></td>
-                  <td><span class="status-pill" style="background: #FEE2E2; color: #DC2626; font-weight: 700; font-size: 0.78rem;">+12 minutos de pausa</span></td>
-                </tr>
-              </tbody>
-            </table>
           </div>
         </section>
-
         <!-- =================================================================
              PANTALLA: VACACIONES (GESTION Y APROBACIONES DE AUSENCIAS)
              ================================================================= -->
@@ -1459,6 +1377,52 @@
             <input id="inp-emp-role" class="login-input" type="text" placeholder="Ej. Técnico Junior" required>
           </div>
         </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-emp-center">Centro de Trabajo *</label>
+            <select id="sel-emp-center" class="emp-filter-select" style="width: 100%; height: 46px;" required>
+              <option value="1">Barcelona</option>
+              <option value="2">Madrid</option>
+              <option value="3">Bilbao</option>
+              <option value="4">Sevilla</option>
+              <option value="5">Valencia</option>
+              <option value="6">Extranjero</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-emp-nss">Núm. Seguridad Social (NSS) *</label>
+            <input id="inp-emp-nss" class="login-input" type="text" placeholder="280000000145" required>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="sel-emp-civil">Estado Civil</label>
+            <select id="sel-emp-civil" class="emp-filter-select" style="width: 100%; height: 46px;">
+              <option value="Soltero/a">Soltero/a</option>
+              <option value="Casado/a">Casado/a</option>
+              <option value="Divorciado/a">Divorciado/a</option>
+              <option value="Viudo/a">Viudo/a</option>
+              <option value="Pareja de hecho">Pareja de hecho</option>
+            </select>
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-emp-dob">Fecha de Nacimiento</label>
+            <input id="inp-emp-dob" class="login-input" type="date" value="1992-05-15">
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-emp-domicilio">Domicilio Completo</label>
+            <input id="inp-emp-domicilio" class="login-input" type="text" placeholder="Carrer / Calle, Número, Ciudad">
+          </div>
+          <div class="login-field-group">
+            <label class="login-field-label" for="inp-emp-telefono">Teléfono Contacto</label>
+            <input id="inp-emp-telefono" class="login-input" type="tel" placeholder="+34 600 000 000">
+          </div>
+        </div>
         <div class="modal-footer" style="padding: 16px 0 0 0;">
           <button id="btn-cancel-new-emp" class="btn-clean btn-clean-outline" type="button">Cancelar</button>
           <button type="submit" class="btn-clean btn-clean-primary">Guardar Empleado</button>
@@ -1529,6 +1493,42 @@
             <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;" id="lbl-profile-security">Seguretat i Signatura</div>
             <div style="font-size: 0.82rem; color: var(--text-main); font-family: monospace;" id="profile-security-val">Algoritme SHA-256 Activat · Sessió X.509 Segura</div>
           </div>
+        
+          <div class="profile-field-box" style="background: #F8F9FA; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Núm. Seguretat Social (NSS)</div>
+            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-main); font-family: monospace;" id="profile-nss-val">280000000145</div>
+          </div>
+
+          <div class="profile-field-box" style="background: #F8F9FA; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Estat Civil</div>
+            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-main);" id="profile-civil-val">Soltero/a</div>
+          </div>
+
+          <div class="profile-field-box" style="grid-column: span 2; background: #F8F9FA; border: 1px solid var(--border-color); border-radius: 6px; padding: 10px 12px;">
+            <div style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Domicili i Contacte</div>
+            <div style="font-size: 0.88rem; font-weight: 600; color: var(--text-main);" id="profile-address-val">Carrer Major 4, Barcelona · +34 600 000 000</div>
+          </div>
+        </div>
+      
+        <!-- Seccion Cambiar Contraseña Segura -->
+        <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-color);">
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 10px;">🔐 Canviar Contrasenya</div>
+          <form id="form-change-password" style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Contrasenya Actual</label>
+                <input type="password" id="inp-current-pwd" class="login-input" placeholder="••••••••" required style="height: 38px;">
+              </div>
+              <div>
+                <label style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">Nova Contrasenya</label>
+                <input type="password" id="inp-new-pwd" class="login-input" placeholder="Mínim 8 caràcters" required style="height: 38px;">
+              </div>
+            </div>
+            <div id="pwd-change-msg" style="display: none; padding: 8px 12px; border-radius: 6px; font-size: 0.82rem;"></div>
+            <div style="display: flex; justify-content: flex-end;">
+              <button type="submit" class="btn-clean btn-clean-primary" style="padding: 8px 16px; font-size: 0.85rem;">Actualitzar Contrasenya</button>
+            </div>
+          </form>
         </div>
       </div>
       <div class="modal-footer" style="display: flex; justify-content: space-between; align-items: center;">
