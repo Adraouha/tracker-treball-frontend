@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html","k":"18"},{"l":"com.trackertreball"},{"l":"com.trackertreball.config"},{"l":"com.trackertreball.controller"},{"l":"com.trackertreball.model"},{"l":"com.trackertreball.repository"},{"l":"com.trackertreball.service"}];updateSearchResults();

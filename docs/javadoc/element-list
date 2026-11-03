@@ -1,0 +1,6 @@
+com.trackertreball
+com.trackertreball.config
+com.trackertreball.controller
+com.trackertreball.model
+com.trackertreball.repository
+com.trackertreball.service
