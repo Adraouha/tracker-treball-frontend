@@ -4,8 +4,8 @@
 // ============================================================================
 // CONFIGURACION DE ENTORNO Y URL BASE DE LA API
 // ============================================================================
-const RAILWAY_BACKEND_URL = (typeof window !== "undefined" && window.RENDER_API_URL)
-  ? window.RENDER_API_URL
+const RAILWAY_BACKEND_URL = (typeof window !== "undefined" && window.RAILWAY_API_URL)
+  ? window.RAILWAY_API_URL
   : "https://tracker-treball-backend-production-e9cd.up.railway.app";
 
 const isLocalhost = typeof window !== "undefined" && (
