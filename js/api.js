@@ -4,12 +4,12 @@
 // ============================================================================
 // CONFIGURACION DE ENTORNO Y URL BASE DE LA API
 // ============================================================================
-// URL de despliegue en Render (reemplazar con tu subdominio de Render si es diferente)
-const RENDER_BACKEND_URL = (typeof window !== "undefined" && window.RENDER_API_URL)
+// URL de despliegue del Backend en Railway (y fallback a Render o personalizada)
+const RAILWAY_BACKEND_URL = (typeof window !== "undefined" && window.RENDER_API_URL)
   ? window.RENDER_API_URL
-  : "https://tracker-treball-backend.onrender.com";
+  : "https://tracker-treball-backend-production-e9cd.up.railway.app";
 
-// Deteccion automatica de entorno: local (localhost / 127.0.0.1) vs produccion (GitHub Pages)
+// Deteccion automatica de entorno: local (localhost / 127.0.0.1) vs produccion (Vercel / GitHub Pages)
 const isLocalhost = Boolean(
   typeof window !== "undefined" && (
     window.location.hostname === "localhost" ||
@@ -22,9 +22,9 @@ const isLocalhost = Boolean(
 // URL base unificada para todos los endpoints
 const API_BASE = isLocalhost
   ? "http://localhost:8080/api/v1"
-  : `${RENDER_BACKEND_URL}/api/v1`;
+  : `${RAILWAY_BACKEND_URL}/api/v1`;
 
-console.log(`[Tracker Treball] Entorno: ${isLocalhost ? "LOCAL" : "PRODUCCION (Render)"} | Base: ${API_BASE}`);
+console.log(`[Tracker Treball] Entorno: ${isLocalhost ? "LOCAL" : "PRODUCCION (Railway)"} | Base: ${API_BASE}`);
 
 // 21 usuarios corporativos
 const TEST_USERS = [
