@@ -842,16 +842,16 @@
             <div class="card-label">Reportes de Auditoría de Pausas y Horarios</div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 12px;">
               <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px;">📊 Resumen Semanal</div>
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px;">Resumen Semanal</div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Horas trabajadas:</span><strong id="rep-sem-horas">38.5 h</strong></div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Tiempo total en pausas:</span><strong id="rep-sem-pausas">120 min</strong></div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #CBD5E1; color: #DC2626;"><span>⚠️ Tiempo adicional consumido:</span><strong id="rep-sem-adicional">0 h 15 min</strong></div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #CBD5E1; color: #DC2626;"><span>Aviso: Tiempo adicional consumido:</span><strong id="rep-sem-adicional">0 h 15 min</strong></div>
               </div>
               <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: 8px; padding: 16px;">
-                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px;">📅 Resumen Mensual</div>
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 8px;">Resumen Mensual</div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Horas trabajadas:</span><strong id="rep-men-horas">154.0 h</strong></div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 6px;"><span>Tiempo total en pausas:</span><strong id="rep-men-pausas">480 min</strong></div>
-                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #CBD5E1; color: #DC2626;"><span>⚠️ Tiempo adicional consumido:</span><strong id="rep-men-adicional">0 h 45 min</strong></div>
+                <div style="display: flex; justify-content: space-between; font-size: 0.85rem; padding-top: 8px; border-top: 1px dashed #CBD5E1; color: #DC2626;"><span>Aviso: Tiempo adicional consumido:</span><strong id="rep-men-adicional">0 h 45 min</strong></div>
               </div>
             </div>
           </div>
@@ -876,7 +876,7 @@
             </div>
             <div style="display: flex; gap: 10px;">
               <button id="btn-export-pausas-csv" class="btn-clean btn-clean-outline" type="button" title="Exportar historial de pausas a archivo CSV">
-                <span>📥 Descargar CSV</span>
+                <span>Descargar CSV</span>
               </button>
               <button id="btn-open-manual-break" class="btn-clean btn-clean-primary" type="button">
                 <span>+ Registrar Pausa Manual</span>
@@ -970,26 +970,26 @@
 
             <select id="sel-pausas-type" class="pausas-select">
               <option value="all">Todos los tipos</option>
-              <option value="cafe">☕ Café / Desayuno (15 min)</option>
-              <option value="almuerzo">🍽️ Almuerzo / Comida (60 min)</option>
-              <option value="medica">🩺 Consulta Médica</option>
-              <option value="asuntos">📋 Asuntos Propios / PRL</option>
+              <option value="cafe">Café / Desayuno (15 min)</option>
+              <option value="almuerzo">Almuerzo / Comida (60 min)</option>
+              <option value="medica">Consulta Médica</option>
+              <option value="asuntos">Asuntos Propios / PRL</option>
             </select>
 
             <select id="sel-pausas-center" class="pausas-select" style="display: none;">
               <option value="all">Todos los centros</option>
-              <option value="Barcelona">📍 Barcelona</option>
-              <option value="Madrid">📍 Madrid</option>
-              <option value="Bilbao">📍 Bilbao</option>
-              <option value="Sevilla">📍 Sevilla</option>
-              <option value="Valencia">📍 Valencia</option>
-              <option value="Extranjero">📍 Extranjero</option>
+              <option value="Barcelona">Barcelona</option>
+              <option value="Madrid">Madrid</option>
+              <option value="Bilbao">Bilbao</option>
+              <option value="Sevilla">Sevilla</option>
+              <option value="Valencia">Valencia</option>
+              <option value="Extranjero">Extranjero</option>
             </select>
 
             <select id="sel-pausas-status" class="pausas-select">
               <option value="all">Todos los estados</option>
-              <option value="ok">✓ Reglamentarias (Sin exceso)</option>
-              <option value="excess">⚠ Con Minutos Adicionales</option>
+              <option value="ok">Reglamentarias (Sin exceso)</option>
+              <option value="excess">Con Minutos Adicionales</option>
             </select>
           </div>
 
@@ -1461,7 +1461,7 @@
               <p class="emp-page-sub">Directorio corporativo de sedes físicas con dirección oficial, código de centro, horario y asignación de plantilla.</p>
             </div>
             <div style="font-size: 0.85rem; background: #EEF2F6; padding: 6px 14px; border-radius: 6px; font-weight: 600; color: #1E293B;">
-              🏛️ 6 Sedes Operativas · Barcelona (Sede Central)
+              6 Sedes Operativas · Barcelona (Sede Central)
             </div>
           </div>
 
@@ -2034,7 +2034,7 @@
       
         <!-- Seccion Cambiar Contraseña Segura -->
         <div style="margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border-color);">
-          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 10px;">🔐 Canviar Contrasenya</div>
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text-main); margin-bottom: 10px;">Canviar Contrasenya</div>
           <form id="form-change-password" style="display: flex; flex-direction: column; gap: 10px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
               <div>
@@ -2262,8 +2262,8 @@
     </div>
   </div>
 
-  <script src="js/api.js?v=20261104_pausas_v8"></script>
-  <script src="js/app.js?v=20261104_pausas_v8"></script>
+  <script src="js/api.js?v=20261104_clean_v9"></script>
+  <script src="js/app.js?v=20261104_clean_v9"></script>
 
   <!-- MODAL: REGISTRAR PAUSA MANUAL -->
   <div id="modal-manual-break" class="modal-overlay" style="display: none;">

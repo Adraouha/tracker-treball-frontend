@@ -62,7 +62,7 @@ async function loadDashboardReminders() {
         <div class="notice-item">
           <span class="notice-bullet" style="background-color: #ec4899;"></span>
           <div>
-            <div class="notice-text-title">🎂 Cumpleaños de ${c.nombre}</div>
+            <div class="notice-text-title">Cumpleaños de ${c.nombre}</div>
             <div class="notice-text-desc">${c.puesto} (${c.departamento}) · Fecha: ${c.fechaNacimiento}</div>
           </div>
         </div>
@@ -1041,7 +1041,7 @@ async function endBreak() {
 
   // Notificacion formal al empleado por exceso
   if (excessMin > 0) {
-    alert(`⚠️ CONTROL DE TIEMPO DE DESCANSO:\n${notifyMsg}\n\nSe ha registrado en tu historial de asistencia para el cómputo del reporte semanal y mensual.`);
+    alert(`Aviso: CONTROL DE TIEMPO DE DESCANSO:\n${notifyMsg}\n\nSe ha registrado en tu historial de asistencia para el cómputo del reporte semanal y mensual.`);
   }
 
   const finishedRecord = {
@@ -1315,7 +1315,7 @@ function renderEmployeeTable(list) {
           <div class="emp-name-text">${emp.name}</div>
           <div class="emp-email-text">${emp.email} ${emp.nss ? '<span style="font-size: 0.72rem; color: #64748B; font-family: monospace;">· NSS: ' + emp.nss + '</span>' : ''}</div>
         </td>
-        <td>${emp.department} <span class="emp-center-badge" style="display:inline-block; font-size: 0.75rem; background: #EEF2F6; color: #334155; padding: 2px 6px; border-radius: 4px; margin-top: 2px; font-weight: 500;">📍 ${emp.centroTrabajo || 'Barcelona'}</span></td>
+        <td>${emp.department} <span class="emp-center-badge" style="display:inline-block; font-size: 0.75rem; background: #EEF2F6; color: #334155; padding: 2px 6px; border-radius: 4px; margin-top: 2px; font-weight: 500;">${emp.centroTrabajo || 'Barcelona'}</span></td>
         <td>${emp.role}</td>
         <td><span class="status-pill ${statusClass}">${statusLabel}</span></td>
         <td style="text-align: right;">
@@ -1726,10 +1726,10 @@ async function submitNewEmployee(e) {
   });
 
   const pwdNotice = (res && res.generatedPassword) 
-    ? `\n\n🔑 Contraseña de acceso autogenerada:\n${res.generatedPassword}\n(El empleado podrá modificarla al iniciar sesión en su perfil)`
+    ? `\n\nContraseña de acceso autogenerada:\n${res.generatedPassword}\n(El empleado podrá modificarla al iniciar sesión en su perfil)`
     : "";
 
-  alert(`✅ Empleado ${name} creado y guardado con éxito en la base de datos.${pwdNotice}`);
+  alert(`Empleado ${name} creado y guardado con éxito en la base de datos.${pwdNotice}`);
 
   closeNewEmpModal();
   document.getElementById("form-create-emp")?.reset();
@@ -2867,9 +2867,7 @@ function updateThemeButtonUI() {
 // -----------------------------------------------------------------------------
 
 
-// ============================================================================
 // FASE 2: CONTROL DE ACCESO BASADO EN ROLES (RBAC) - LOGICA CLIENTE
-// ============================================================================
 function applyRolePermissions(targetRole) {
   const role = (targetRole || (AppState.currentUser && (AppState.currentUser.rol || AppState.currentUser.privilege)) || "ADMIN").toUpperCase();
   if (!AppState.currentUser) AppState.currentUser = { id: 1, name: "Hassan Test" };
@@ -2929,9 +2927,7 @@ function applyRolePermissions(targetRole) {
   else if (AppState.currentView === "empleados") filterEmployees();
 }
 
-// ============================================================================
 // FASE 3.1: PANEL DE SUPERVISION GLOBAL (DIRECTOR GENERAL / ADMIN)
-// ============================================================================
 async function loadAdminPanelData() {
   const tbody = document.getElementById("tbody-admin-vacations");
   if (!tbody) return;
@@ -2954,7 +2950,7 @@ async function loadAdminPanelData() {
     if (badgeCount) badgeCount.textContent = pendingRequests.length + " solicitudes pendientes";
 
     if (pendingRequests.length === 0) {
-      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);"><span class="tt-badge tt-badge-success">✓ Todas las solicitudes de vacaciones han sido resueltas</span></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);"><span class="tt-badge tt-badge-success">Todas las solicitudes de vacaciones han sido resueltas</span></td></tr>';
       return;
     }
 
@@ -2969,7 +2965,7 @@ async function loadAdminPanelData() {
       return `
         <tr>
           <td><strong>${r.employeeName || "Empleado #" + r.employeeId}</strong></td>
-          <td><span class="emp-center-badge">📍 ${r.workCenterName || "Barcelona"}</span></td>
+          <td><span class="emp-center-badge">${r.workCenterName || "Barcelona"}</span></td>
           <td><strong>${r.startDate} &rarr; ${r.endDate}</strong></td>
           <td><strong>${r.daysCount}</strong> ${dSuffix}</td>
           <td><div><strong>${r.type}</strong></div><div style="font-size:0.75rem; color:var(--text-muted);">${r.reason || ""}</div></td>
@@ -3016,7 +3012,7 @@ async function handleAdminReviewVacation(id, action) {
   });
 
   if (res && res.status === "SUCCESS") {
-    alert("✓ Solicitud de vacaciones gestionada correctamente por el Director General.");
+    alert("Solicitud de vacaciones gestionada correctamente por el Director General.");
     await loadAdminPanelData();
     if (AppState.currentView === "vacaciones") await loadVacationsData();
   } else {
@@ -3024,9 +3020,7 @@ async function handleAdminReviewVacation(id, action) {
   }
 }
 
-// ============================================================================
 // FASE 3.4: GESTOR VISUAL DE BASE DE DATOS (ADMIN VISOR / ADMINER INTEGRADO)
-// ============================================================================
 let currentDbTable = "employees";
 let currentDbColumns = [];
 let currentDbRows = [];
@@ -3191,7 +3185,7 @@ async function handleDbRowDelete(rowId) {
 
   const res = await apiDeleteAdminTableRow(currentDbTable, rowId);
   if (res && res.status === "SUCCESS") {
-    alert("✓ Registro #" + rowId + " eliminado permanentemente de la base de datos.");
+    alert("Registro #" + rowId + " eliminado permanentemente de la base de datos.");
     await loadDbVisorTable(currentDbTable);
   } else {
     alert("Error al eliminar registro: " + ((res && res.error) || "Permiso denegado"));
@@ -3428,9 +3422,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 
-// ============================================================================
 // FUNCIONES DE CENTROS DE TRABAJO, PAUSAS, BAJAS, PROYECTOS Y CRUD EMPLEADOS
-// ============================================================================
 
 // 1. Carga y renderizado de centros de trabajo (Red Corporativa)
 async function loadWorkCentersData() {
@@ -3531,9 +3523,7 @@ async function loadWorkCentersData() {
 }
 
 
-// ============================================================================
 // FASE 3 & 4: CONTROL DINÁMICO DE PAUSAS Y DESCANSOS LABORALES (RBAC + SEMANAS)
-// ============================================================================
 
 AppState.currentBreaksContext = "my"; // "my" | "team" | "all"
 AppState.breaksInitialized = false;
@@ -3780,7 +3770,7 @@ function renderDynamicBreaks() {
     tbody.innerHTML = `
       <tr>
         <td colspan="8" style="text-align: center; padding: 48px 16px; color: var(--text-muted);">
-          <div style="font-size: 2.2rem; margin-bottom: 10px;">☕</div>
+          <div style="font-size: 2.2rem; margin-bottom: 10px;"></div>
           <strong style="font-size: 1rem; color: var(--text-main); display: block; margin-bottom: 6px;">No se han encontrado registros de pausas</strong>
           <span style="font-size: 0.85rem;">Prueba a cambiar el filtro de semana, contexto o busca por otro término.</span>
         </td>
@@ -3813,7 +3803,7 @@ function renderDynamicBreaks() {
         <td colspan="8">
           <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
             <div style="display: inline-flex; align-items: center; gap: 8px;">
-              <span>📅</span>
+              <span></span>
               <strong style="color: var(--primary-dark); font-size: 0.88rem;">${weekTitle}</strong>
               <span class="tt-badge tt-badge-neutral" style="font-size: 0.72rem; padding: 2px 8px;">${weekItems.length} registros</span>
             </div>
@@ -3832,23 +3822,23 @@ function renderDynamicBreaks() {
 
       // Chip y color según tipo de pausa
       let chipClass = "other";
-      let chipIcon = "⏱️";
+      let chipIcon = "";
       if (b.typeKey === "cafe" || b.type.toLowerCase().includes("café")) {
-        chipClass = "cafe"; chipIcon = "☕";
+        chipClass = "cafe"; chipIcon = "";
       } else if (b.typeKey === "almuerzo" || b.type.toLowerCase().includes("almuerzo") || b.type.toLowerCase().includes("comida")) {
-        chipClass = "lunch"; chipIcon = "🍽️";
+        chipClass = "lunch"; chipIcon = "";
       } else if (b.typeKey === "medica" || b.type.toLowerCase().includes("médica") || b.type.toLowerCase().includes("medica")) {
-        chipClass = "medical"; chipIcon = "🩺";
+        chipClass = "medical"; chipIcon = "";
       }
 
       // Badge de estado de conformidad
       let statusBadge = "";
       if (b.typeKey === "medica") {
-        statusBadge = '<span class="tt-badge tt-badge-info">✓ Justificada</span>';
+        statusBadge = '<span class="tt-badge tt-badge-info">Justificada</span>';
       } else if (isExcess) {
-        statusBadge = `<span class="tt-badge tt-badge-danger">⚠ +${b.excessMinutes} min exceso</span>`;
+        statusBadge = `<span class="tt-badge tt-badge-danger">Exceso: +${b.excessMinutes} min exceso</span>`;
       } else {
-        statusBadge = '<span class="tt-badge tt-badge-success">✓ Reglamentaria</span>';
+        statusBadge = '<span class="tt-badge tt-badge-success">Reglamentaria</span>';
       }
 
       htmlRows += `
@@ -3863,7 +3853,7 @@ function renderDynamicBreaks() {
             </div>
           </td>
           <td>
-            <span class="emp-center-badge">📍 ${b.center || "Barcelona"}</span>
+            <span class="emp-center-badge">${b.center || "Barcelona"}</span>
           </td>
           <td>
             <span class="break-type-chip ${chipClass}">
@@ -3903,7 +3893,7 @@ function renderDynamicBreaks() {
       <tr style="background: var(--bg-page); font-weight: 700; border-top: 2px solid var(--border-color);">
         <td colspan="4" style="padding: 14px 16px;">
           <div style="display: flex; align-items: center; gap: 8px;">
-            <span>📊</span>
+            <span></span>
             <span>Total Acumulado (${totalCount} pausas en el período seleccionado)</span>
           </div>
         </td>
@@ -4197,7 +4187,7 @@ function setupNewFeaturesListeners() {
     }
 
     if (res && res.status === "SUCCESS") {
-      alert("✓ Registro guardado con éxito en la base de datos ('" + currentDbTable + "').");
+      alert("Registro guardado con éxito en la base de datos ('" + currentDbTable + "').");
       document.getElementById("modal-db-row").style.display = "none";
       await loadDbVisorTable(currentDbTable);
     } else {
@@ -4290,9 +4280,9 @@ function setupNewFeaturesListeners() {
     saveBreaksStore();
 
     if (excess > 0) {
-      alert(`⚠️ Registro de Pausa:\nHas consumido ${minutes} minutos de pausa (${breakType}).\nSupera el tiempo legal en +${excess} minutos (${excessHours} h adicionales), que se incluirán en el cómputo de reporte mensual.`);
+      alert(`Aviso: Registro de Pausa:\nHas consumido ${minutes} minutos de pausa (${breakType}).\nSupera el tiempo legal en +${excess} minutos (${excessHours} h adicionales), que se incluirán en el cómputo de reporte mensual.`);
     } else {
-      alert(`✓ Pausa de ${minutes} minutos registrada correctamente dentro del límite establecido.`);
+      alert(`Pausa de ${minutes} minutos registrada correctamente dentro del límite establecido.`);
     }
 
     document.getElementById("modal-manual-break").style.display = "none";

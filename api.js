@@ -1,8 +1,4 @@
-// ============================================================================
 // MODULO DE COMUNICACION CON LA API REST (TRACKER TREBALL)
-// Capa cliente HTTP con sincronizacion segura en UTF-8 y soporte RBAC
-// Autor: Hassan Adraou
-// ============================================================================
 
 // URL oficial del microservicio Spring Boot en Railway (Producción / Cloud activo)
 const RAILWAY_BACKEND_URL = "https://tracker-treball-backend-production-e9cd.up.railway.app/api/v1";
@@ -189,9 +185,7 @@ async function apiDelete(endpoint) {
   }
 }
 
-// ============================================================================
 // FUNCIONES ESPECIFICAS DEL SISTEMA TRACKER TREBALL
-// ============================================================================
 
 async function apiLogin(email, password) {
   // Normalizar credenciales de entrada
