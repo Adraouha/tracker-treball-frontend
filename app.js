@@ -2721,7 +2721,7 @@ function applyRolePermissions(targetRole) {
     managerUpEls.forEach(el => el.style.setProperty("display", "none", "important"));
     if (newEmpBtn) newEmpBtn.style.display = "none";
     document.querySelectorAll(".btn-delete-employee, .btn-archive-emp, .btn-permanent-delete").forEach(b => b.style.display = "none");
-    if (AppState.currentView === "admin-panel" || AppState.currentView === "db-visor") {
+    if (AppState.currentView === "admin-panel") {
       navigateTo("dashboard");
     }
   } else if (role === "MANAGER") {
@@ -2914,6 +2914,11 @@ function renderDbVisorRows(rows) {
     });
 
     const rowId = row.id || row.ID || 0;
+    const isManager = (AppState.currentUser && (AppState.currentUser.rol || AppState.currentUser.privilege) === "MANAGER");
+    const deleteBtn = isManager
+      ? '<span class="tt-badge tt-badge-neutral" title="Eliminación física reservada a ADMIN" style="opacity:0.6; cursor:not-allowed;">✕ Bloqueado</span>'
+      : `<button type="button" class="btn-clean" style="padding:4px 8px; font-size:0.75rem; background:#EF4444; color:white; border:none;" onclick="handleDbRowDelete(${rowId})">✕ Borrar</button>`;
+
     return `
       <tr>
         ${cellsHtml}
@@ -2921,9 +2926,7 @@ function renderDbVisorRows(rows) {
           <button type="button" class="btn-clean" style="padding:4px 8px; font-size:0.75rem; background:#3B82F6; color:white; border:none; margin-right:4px;" onclick="openDbRowModal('edit', ${rowId})">
             ✎ Editar
           </button>
-          <button type="button" class="btn-clean" style="padding:4px 8px; font-size:0.75rem; background:#EF4444; color:white; border:none;" onclick="handleDbRowDelete(${rowId})">
-            ✕ Borrar
-          </button>
+          ${deleteBtn}
         </td>
       </tr>
     `;
@@ -2981,6 +2984,11 @@ function openDbRowModal(mode, rowId = null) {
 }
 
 async function handleDbRowDelete(rowId) {
+  const isManager = (AppState.currentUser && (AppState.currentUser.rol || AppState.currentUser.privilege) === "MANAGER");
+  if (isManager) {
+    alert("Acceso denegado: El rol MANAGER tiene permisos completos de consulta, creación y modificación en la base de datos, pero la eliminación física definitiva está reservada al Director General.");
+    return;
+  }
   if (!confirm("¿Estás seguro de que deseas eliminar permanentemente el registro #" + rowId + " de la tabla '" + currentDbTable + "'? Esta acción es definitiva.")) {
     return;
   }
