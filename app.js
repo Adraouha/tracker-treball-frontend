@@ -636,6 +636,10 @@ function navigateTo(viewName) {
     loadLeavesData();
   } else if (viewName === "proyectos") {
     loadProjectsData();
+  } else if (viewName === "db-visor") {
+    loadDbVisorData();
+  } else if (viewName === "admin-panel") {
+    loadAdminPanelData();
   }
 }
 
@@ -3538,6 +3542,101 @@ function populateEmployeeSelects() {
 
 // 7. Setup de event listeners para los nuevos modales
 function setupNewFeaturesListeners() {
+  // Navegacion Base de Datos y Panel Director General
+  document.getElementById("nav-btn-db-visor")?.addEventListener("click", () => {
+    navigateTo("db-visor");
+  });
+  document.getElementById("nav-btn-admin-panel")?.addEventListener("click", () => {
+    navigateTo("admin-panel");
+  });
+  document.getElementById("btn-admin-open-db")?.addEventListener("click", () => {
+    navigateTo("db-visor");
+  });
+  document.getElementById("btn-admin-refresh")?.addEventListener("click", () => {
+    loadAdminPanelData();
+  });
+
+  // Selector y Controles del Gestor Visual de BD
+  document.getElementById("select-db-table")?.addEventListener("change", (e) => {
+    loadDbVisorTable(e.target.value);
+  });
+  document.getElementById("btn-db-refresh")?.addEventListener("click", () => {
+    loadDbVisorTable(currentDbTable || "employees");
+  });
+  document.getElementById("btn-db-add-row")?.addEventListener("click", () => {
+    openDbRowModal("create");
+  });
+  document.getElementById("btn-close-db-row")?.addEventListener("click", () => {
+    document.getElementById("modal-db-row").style.display = "none";
+  });
+  document.getElementById("btn-cancel-db-row")?.addEventListener("click", () => {
+    document.getElementById("modal-db-row").style.display = "none";
+  });
+  document.getElementById("input-db-search")?.addEventListener("input", (e) => {
+    const q = (e.target.value || "").toLowerCase().trim();
+    if (!q) {
+      renderDbVisorRows(currentDbRows);
+    } else {
+      const filtered = currentDbRows.filter(r => 
+        Object.values(r).some(v => v !== null && String(v).toLowerCase().includes(q))
+      );
+      renderDbVisorRows(filtered);
+    }
+  });
+
+  // Formulario Guardar Registro en BD
+  document.getElementById("form-db-row")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const mode = document.getElementById("inp-db-row-mode").value;
+    const rowId = document.getElementById("inp-db-row-id").value;
+    const form = e.target;
+    const data = {};
+
+    currentDbColumns.forEach(col => {
+      const colName = col.COLUMN_NAME;
+      if (colName === "id" && mode === "create") return;
+      const input = form.elements[colName];
+      if (input && input.value !== undefined) {
+        let v = input.value.trim();
+        if (v === "" && col.IS_NULLABLE === "YES") {
+          data[colName] = null;
+        } else if (col.DATA_TYPE === "int" || col.DATA_TYPE === "bigint" || col.DATA_TYPE === "smallint") {
+          data[colName] = v === "" ? null : parseInt(v, 10);
+        } else if (col.DATA_TYPE === "tinyint" && (v === "true" || v === "false")) {
+          data[colName] = v === "true" ? 1 : 0;
+        } else {
+          data[colName] = v;
+        }
+      }
+    });
+
+    let res;
+    if (mode === "create") {
+      res = await apiInsertAdminTableRow(currentDbTable, data);
+    } else {
+      res = await apiUpdateAdminTableRow(currentDbTable, rowId, data);
+    }
+
+    if (res && res.status === "SUCCESS") {
+      alert("✓ Registro guardado con éxito en la base de datos ('" + currentDbTable + "').");
+      document.getElementById("modal-db-row").style.display = "none";
+      await loadDbVisorTable(currentDbTable);
+    } else {
+      const errEl = document.getElementById("db-row-error");
+      if (errEl) {
+        errEl.textContent = (res && res.error) || "Error al guardar el registro en la base de datos.";
+        errEl.style.display = "block";
+      } else {
+        alert("Error al guardar: " + ((res && res.error) || "Error desconocido"));
+      }
+    }
+  });
+
+  // Selector interactivo de Rol en navbar
+  document.getElementById("select-active-role")?.addEventListener("change", (e) => {
+    applyRolePermissions(e.target.value);
+  });
+
   // Navegacion
   document.getElementById("nav-btn-centros")?.addEventListener("click", () => navigateTo("centros"));
   document.getElementById("nav-btn-pausas")?.addEventListener("click", () => navigateTo("pausas"));
@@ -3726,3 +3825,13 @@ function setupNewFeaturesListeners() {
     }
   });
 }
+
+
+// Exportaciones globales para eventos inline onclick
+window.navigateTo = navigateTo;
+window.openDbRowModal = openDbRowModal;
+window.handleDbRowDelete = handleDbRowDelete;
+window.handleAdminReviewVacation = handleAdminReviewVacation;
+window.applyRolePermissions = applyRolePermissions;
+window.loadDbVisorData = loadDbVisorData;
+window.loadDbVisorTable = loadDbVisorTable;
