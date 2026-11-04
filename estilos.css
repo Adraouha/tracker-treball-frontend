@@ -2203,3 +2203,168 @@ body.dark-mode .db-col-badge {
   border-color: #475569;
   color: #cbd5e1;
 }
+
+
+/* ==========================================================================
+   ESTILOS UNIFICADOS: CONSOLA DIRECTOR GENERAL Y GESTOR DE BASE DE DATOS
+   ========================================================================== */
+
+/* Botones de accion para filas del Gestor de BD (Visor / Adminer) */
+.btn-db-action {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.76rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-db-edit {
+  background-color: rgba(37, 99, 235, 0.08);
+  color: #2563eb;
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.btn-db-edit:hover {
+  background-color: #2563eb;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.btn-db-delete {
+  background-color: rgba(239, 68, 68, 0.08);
+  color: #dc2626;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.btn-db-delete:hover {
+  background-color: #dc2626;
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(239, 68, 68, 0.25);
+}
+
+body.dark-mode .btn-db-edit {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  border-color: rgba(59, 130, 246, 0.3);
+}
+
+body.dark-mode .btn-db-edit:hover {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+body.dark-mode .btn-db-delete {
+  background-color: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+body.dark-mode .btn-db-delete:hover {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+/* Acciones en la tabla de vacaciones de Direccion General */
+.btn-admin-action {
+  padding: 5px 11px;
+  border-radius: var(--radius-sm, 6px);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.btn-admin-accept {
+  background-color: #10b981;
+  color: #ffffff;
+  border-color: #059669;
+}
+
+.btn-admin-accept:hover {
+  background-color: #059669;
+  box-shadow: 0 2px 5px rgba(16, 185, 129, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-admin-adjust {
+  background-color: #f59e0b;
+  color: #ffffff;
+  border-color: #d97706;
+}
+
+.btn-admin-adjust:hover {
+  background-color: #d97706;
+  box-shadow: 0 2px 5px rgba(245, 158, 11, 0.3);
+  transform: translateY(-1px);
+}
+
+.btn-admin-reject {
+  background-color: #ef4444;
+  color: #ffffff;
+  border-color: #dc2626;
+}
+
+.btn-admin-reject:hover {
+  background-color: #dc2626;
+  box-shadow: 0 2px 5px rgba(239, 68, 68, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Grid de formulario dinamico en el modal de BD */
+.db-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.db-form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.db-form-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.db-form-type {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.db-form-input {
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 0.86rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm, 6px);
+  background: var(--bg-page);
+  color: var(--text-main);
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.db-form-input:focus {
+  border-color: var(--primary);
+  background: var(--bg-card);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
+}

@@ -144,8 +144,8 @@ const AppState = {
   empPageSize: 8,
   currentUser: {
     id: 1,
-    name: "Hassan Adraou",
-    email: "hassan.adraou@test.es",
+    name: "Hassan Test",
+    email: "hassan.test@trackertreball.com",
     role: "Arquitecto de Software & Superadministrador",
     privilege: "ADMIN",
     department: "Tecnología",
@@ -1234,7 +1234,7 @@ function normalizeEmployee(emp) {
     nss: emp.nss || "",
     estadoCivil: emp.estadoCivil || emp.estado_civil || "Soltero/a",
     domicilio: emp.domicilio || "",
-    telefono: emp.telefono || "+34 600 000 000",
+    telefono: emp.telefono || "611315578",
     fechaNacimiento: emp.fechaNacimiento || emp.fecha_nacimiento || "1995-01-01"
   };
 }
@@ -1364,9 +1364,9 @@ function filterEmployees() {
     const matchStatus = !status || emp.status === status;
     const matchSupervisor = !supervisor || (
       supervisor === "Hassan Adraou" ? true :
-      supervisor === "Albert Guiteras" ? emp.department === "Tecnología" :
-      supervisor === "Alba Garcia" ? emp.department === "Personas" :
-      supervisor === "Jose Daniel Calicchio" ? emp.department === "Operaciones" : true
+      supervisor === "Albert G. Test" ? emp.department === "Tecnología" :
+      supervisor === "Alba G. Test" ? emp.department === "Personas" :
+      supervisor === "Jose Daniel Test" ? emp.department === "Operaciones" : true
     );
 
     return matchText && matchDept && matchStatus && matchSupervisor;
@@ -1398,7 +1398,7 @@ function goToEmployeePage(pageNum) {
 // -----------------------------------------------------------------------------
 
 function applyUserAvatar(customPhotoUrl) {
-  const user = AppState.currentUser || { id: 1, name: "Hassan Adraou", avatar: "HA" };
+  const user = AppState.currentUser || { id: 1, name: "Hassan Test", avatar: "HA" };
   const navAvatarEl = document.getElementById("nav-user-avatar");
   const modalAvatarInitials = document.getElementById("profile-avatar-initials");
   const modalAvatarImg = document.getElementById("profile-avatar-img");
@@ -1442,8 +1442,8 @@ function applyUserAvatar(customPhotoUrl) {
 function openProfileModal() {
   const user = AppState.currentUser || {
     id: 1,
-    name: "Hassan Adraou",
-    email: "hassan.adraou@test.es",
+    name: "Hassan Test",
+    email: "hassan.test@trackertreball.com",
     role: "Arquitecto de Software & Superadministrador",
     privilege: "ADMIN",
     department: "Tecnología",
@@ -1566,8 +1566,8 @@ function getExportData() {
     const headers = ["Empleat", "Tipus", "Inici", "Final", "Dies Sol·licitats", "Estat", "Aprovador"];
     const rows = [
       ["Anna Soler", "Vacances anuals", "28/10/2026", "04/11/2026", "6 dies", "Aprovat", "Laura Serra"],
-      ["Marc Barranco", "Assumptes propis", "10/11/2026", "11/11/2026", "1 dia", "Pendent", "Hassan Adraou"],
-      ["Mohammed Alisawi", "Vacances d'hivern", "22/12/2026", "07/01/2027", "11 dies", "Aprovat", "Hassan Adraou"]
+      ["Marc Test", "Assumptes propis", "10/11/2026", "11/11/2026", "1 dia", "Pendent", "Hassan Adraou"],
+      ["Mohammed Test", "Vacances d'hivern", "22/12/2026", "07/01/2027", "11 dies", "Aprovat", "Hassan Adraou"]
     ];
     return { title: "Sol·licituds de Vacances i Permisos", filename: `vacances_tracker_treball_${new Date().toISOString().slice(0, 10)}`, headers, rows };
   }
@@ -1707,7 +1707,7 @@ async function submitNewEmployee(e) {
   const estadoCivil = document.getElementById("sel-emp-civil")?.value || "Soltero/a";
   const fechaNacimiento = document.getElementById("inp-emp-dob")?.value || "1992-05-15";
   const domicilio = document.getElementById("inp-emp-domicilio")?.value || "";
-  const telefono = document.getElementById("inp-emp-telefono")?.value || "+34 600 000 000";
+  const telefono = document.getElementById("inp-emp-telefono")?.value || "611315578";
 
   const res = await apiPost("/employees", {
     name,
@@ -2763,6 +2763,22 @@ function setLanguage(lang) {
   updateShiftBadge();
   renderEmployeeTable(AppState.filteredEmployees.length > 0 ? AppState.filteredEmployees : AppState.employeeList);
 
+  // 12. Seccion Consola Direccion General
+  setElementText("#lbl-admin-breadcrumb", lang === "ca" ? "Consola de Direcció General" : "Consola de Dirección General");
+  setElementText("#lbl-admin-title", lang === "ca" ? "Consola de Supervisió Executiva" : "Consola de Supervisión Ejecutiva");
+  setElementText("#lbl-admin-sub", lang === "ca" ? "Panell de control integral per al Director General: aprovació àgil de vacances, torns, desviacions i projectes." : "Panel de control integral para el Director General: aprobación de vacaciones, turnos, desviaciones y proyectos.");
+  setElementText("#txt-btn-admin-refresh", lang === "ca" ? "Actualitzar Dades" : "Actualizar Datos");
+  setElementText("#txt-btn-admin-db", lang === "ca" ? "Control Base de Dades" : "Control Base de Datos");
+  setElementText("#txt-nav-admin-panel", lang === "ca" ? "Direcció General" : "Dirección General");
+
+  // 13. Seccion Gestor Base de Datos (Visor Manager / Admin)
+  setElementText("#lbl-db-breadcrumb", lang === "ca" ? "Gestor de Base de Dades" : "Control de Base de Datos");
+  setElementText("#lbl-db-title", lang === "ca" ? "Gestió i Control de Base de Dades" : "Gestión y Control de Base de Datos");
+  setElementText("#lbl-db-sub", lang === "ca" ? "Visor interactiu i segur per consultar, afegir i actualitzar registres corporatius sense requerir DBeaver." : "Consulta, añade, modifica y elimina registros directamente en la base de datos de manera segura y en tiempo real, sin recurrir a DBeaver.");
+  setElementText("#txt-btn-db-refresh", lang === "ca" ? "Refrescar Taula" : "Refrescar Tabla");
+  setElementText("#txt-btn-db-add", lang === "ca" ? "+ Afegir Registre" : "+ Añadir Registro");
+  setElementText("#txt-nav-db-visor", lang === "ca" ? "Base de Dades" : "Base de Datos");
+
   // Boton Javadoc en Navbar y Sidebar
   setElementText("#btn-nav-javadoc span", t.navJavadoc);
   setElementText("#nav-btn-javadoc span", t.navJavadoc);
@@ -2856,7 +2872,7 @@ function updateThemeButtonUI() {
 // ============================================================================
 function applyRolePermissions(targetRole) {
   const role = (targetRole || (AppState.currentUser && (AppState.currentUser.rol || AppState.currentUser.privilege)) || "ADMIN").toUpperCase();
-  if (!AppState.currentUser) AppState.currentUser = { id: 1, name: "Hassan Adraou" };
+  if (!AppState.currentUser) AppState.currentUser = { id: 1, name: "Hassan Test" };
   AppState.currentUser.rol = role;
   AppState.currentUser.privilege = role;
 
@@ -2961,13 +2977,16 @@ async function loadAdminPanelData() {
           <td>
             <div style="display:flex; gap:6px;">
               <button type="button" class="btn-admin-action btn-admin-accept" onclick="handleAdminReviewVacation(${r.id}, 'accept')" title="Aprobar inmediatamente">
-                ✓ Aprobar
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                <span>Aprobar</span>
               </button>
               <button type="button" class="btn-admin-action btn-admin-adjust" onclick="handleAdminReviewVacation(${r.id}, 'adjust')" title="Solicitar ajuste de fechas al empleado">
-                ✎ Ajustes
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                <span>Ajustes</span>
               </button>
               <button type="button" class="btn-admin-action btn-admin-reject" onclick="handleAdminReviewVacation(${r.id}, 'reject')" title="Rechazar solicitud con motivo">
-                ✕ Rechazar
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                <span>Rechazar</span>
               </button>
             </div>
           </td>
@@ -3082,15 +3101,25 @@ function renderDbVisorRows(rows) {
     const rowId = row.id || row.ID || 0;
     const isManager = (AppState.currentUser && (AppState.currentUser.rol || AppState.currentUser.privilege) === "MANAGER");
     const deleteBtn = isManager
-      ? '<span class="tt-badge tt-badge-neutral" title="Eliminación física reservada a ADMIN" style="opacity:0.6; cursor:not-allowed;">✕ Bloqueado</span>'
-      : `<button type="button" class="btn-clean" style="padding:4px 8px; font-size:0.75rem; background:#EF4444; color:white; border:none;" onclick="handleDbRowDelete(${rowId})">✕ Borrar</button>`;
+      ? '<span class="tt-badge tt-badge-neutral" title="Eliminación física reservada a Director General" style="opacity:0.75; font-size:0.74rem;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>Solo Admin</span>'
+      : `<button type="button" class="btn-db-action btn-db-delete" onclick="handleDbRowDelete(${rowId})" title="Eliminar registro permanentemente">
+           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+             <polyline points="3 6 5 6 21 6"></polyline>
+             <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+           </svg>
+           <span>Borrar</span>
+         </button>`;
 
     return `
       <tr>
         ${cellsHtml}
         <td style="text-align:right; white-space:nowrap;">
-          <button type="button" class="btn-clean" style="padding:4px 8px; font-size:0.75rem; background:#3B82F6; color:white; border:none; margin-right:4px;" onclick="openDbRowModal('edit', ${rowId})">
-            ✎ Editar
+          <button type="button" class="btn-db-action btn-db-edit" onclick="openDbRowModal('edit', ${rowId})" title="Editar este registro">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <span>Editar</span>
           </button>
           ${deleteBtn}
         </td>
@@ -3121,6 +3150,7 @@ function openDbRowModal(mode, rowId = null) {
     title.textContent = "Añadir Nuevo Registro en '" + currentDbTable + "'";
   }
 
+  container.className = "db-form-grid";
   container.innerHTML = currentDbColumns.map(col => {
     const colName = col.COLUMN_NAME;
     if (colName === "id" && mode === "create") return "";
@@ -3129,17 +3159,17 @@ function openDbRowModal(mode, rowId = null) {
     const isReadOnly = colName === "id";
 
     return `
-      <div class="login-field-group">
-        <label class="login-field-label" style="display:flex; justify-content:space-between;">
+      <div class="db-form-field">
+        <label class="db-form-label">
           <span>${colName}</span>
-          <span style="font-size:0.72rem; color:var(--text-muted);">${col.DATA_TYPE}</span>
+          <span class="db-form-type">${col.DATA_TYPE}</span>
         </label>
         <input 
           type="text" 
           name="${colName}" 
-          class="login-input" 
+          class="db-form-input" 
           value="${String(val).replace(/"/g, '&quot;')}" 
-          ${isReadOnly ? 'readonly style="background:var(--bg-page); color:var(--text-muted);"' : ''}
+          ${isReadOnly ? 'readonly style="opacity:0.65; cursor:not-allowed;"' : ''}
           placeholder="Valor para ${colName}"
         >
       </div>
@@ -3508,9 +3538,9 @@ async function loadBreaksData() {
   if (!AppState.recordedBreaks || AppState.recordedBreaks.length === 0) {
     AppState.recordedBreaks = [
       { id: 1, employeeName: "Hassan Adraou", center: "Barcelona", type: "Café / Descanso", start: "10:30", end: "10:45", minutes: 15, excessMinutes: 0, status: "Dentro de límite" },
-      { id: 2, employeeName: "Alba Garcia", center: "Madrid", type: "Almuerzo / Comida", start: "14:00", end: "15:00", minutes: 60, excessMinutes: 0, status: "Dentro de límite" },
+      { id: 2, employeeName: "Alba G. Test", center: "Madrid", type: "Almuerzo / Comida", start: "14:00", end: "15:00", minutes: 60, excessMinutes: 0, status: "Dentro de límite" },
       { id: 3, employeeName: "Elena Sanchez", center: "Bilbao", type: "Café / Descanso", start: "11:15", end: "11:35", minutes: 20, excessMinutes: 5, status: "Exceso +5 min" },
-      { id: 4, employeeName: "Marc Barranco", center: "Barcelona", type: "Consulta Médica", start: "09:30", end: "10:15", minutes: 45, excessMinutes: 0, status: "Justificada" },
+      { id: 4, employeeName: "Marc Test", center: "Barcelona", type: "Consulta Médica", start: "09:30", end: "10:15", minutes: 45, excessMinutes: 0, status: "Justificada" },
       { id: 5, employeeName: "Javier Fernandez", center: "Sevilla", type: "Café / Descanso", start: "11:00", end: "11:25", minutes: 25, excessMinutes: 10, status: "Exceso +10 min" }
     ];
   }
