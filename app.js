@@ -3211,7 +3211,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const res = await apiLogin(email, pwd);
     if (!res || res.status !== "SUCCESS" || !res.user) {
       if (errorEl) {
-        errorEl.textContent = (res && res.error) ? res.error : "Credenciales no válidas. Revisa tu email y contraseña.";
+        errorEl.textContent = (res && (res.error || res.message)) ? (res.error || res.message) : "Credenciales no válidas. Revisa tu email y contraseña.";
         errorEl.style.display = "block";
       } else {
         alert("Credenciales no válidas.");
