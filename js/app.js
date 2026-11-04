@@ -3530,58 +3530,445 @@ async function loadWorkCentersData() {
   }
 }
 
-// 2. Control de pausas laborales y computo de minutos adicionales
+
+// ============================================================================
+// FASE 3 & 4: CONTROL DINÁMICO DE PAUSAS Y DESCANSOS LABORALES (RBAC + SEMANAS)
+// ============================================================================
+
+AppState.currentBreaksContext = "my"; // "my" | "team" | "all"
+AppState.breaksInitialized = false;
+
+// Generador de datos iniciales realistas para todos los centros y roles
+function getInitialBreaksData() {
+  return [
+    // --- SEMANA 45 (02/11/2026 - 08/11/2026) ---
+    // Barcelona (Hassan, Albert G, Albert P, Usuario Prueba)
+    { id: 101, employeeId: 1, employeeName: "Hassan Test", employeeRole: "ADMIN", department: "Tecnologia", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:30", endTime: "10:45", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Descanso visual pantallas PVD" },
+    { id: 102, employeeId: 1, employeeName: "Hassan Test", employeeRole: "ADMIN", department: "Tecnologia", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-03", dayName: "Martes", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "14:00", endTime: "14:55", minutes: 55, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Comida estipulada en jornada partida" },
+    { id: 103, employeeId: 1, employeeName: "Hassan Test", employeeRole: "ADMIN", department: "Tecnologia", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-02", dayName: "Lunes", type: "Café / Desayuno", typeKey: "cafe", startTime: "11:00", endTime: "11:15", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa matinal" },
+    
+    { id: 104, employeeId: 2, employeeName: "Albert G. Test", employeeRole: "MANAGER", department: "Operaciones", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:15", endTime: "10:30", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa estándar" },
+    { id: 105, employeeId: 2, employeeName: "Albert G. Test", employeeRole: "MANAGER", department: "Operaciones", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-03", dayName: "Martes", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "13:30", endTime: "14:35", minutes: 65, limitMinutes: 60, excessMinutes: 5, status: "Exceso +5 min", notes: "Retraso en comedor de empresa" },
+    
+    { id: 106, employeeId: 25, employeeName: "Usuario Prueba Test", employeeRole: "EMPLOYEE", department: "Tecnologia", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "11:30", endTime: "11:50", minutes: 20, limitMinutes: 15, excessMinutes: 5, status: "Exceso +5 min", notes: "Pausa prolongada" },
+    { id: 107, employeeId: 25, employeeName: "Usuario Prueba Test", employeeRole: "EMPLOYEE", department: "Tecnologia", center: "Barcelona", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-02", dayName: "Lunes", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "14:15", endTime: "15:15", minutes: 60, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Almuerzo" },
+
+    // Madrid (Alba G, Jose Daniel, Alba S)
+    { id: 108, employeeId: 4, employeeName: "Alba G. Test", employeeRole: "MANAGER", department: "RRHH", center: "Madrid", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "14:00", endTime: "15:00", minutes: 60, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Almuerzo de equipo" },
+    { id: 109, employeeId: 5, employeeName: "Jose Daniel Test", employeeRole: "EMPLOYEE", department: "RRHH", center: "Madrid", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:45", endTime: "11:00", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa descanso" },
+    { id: 110, employeeId: 6, employeeName: "Alba S. Test", employeeRole: "EMPLOYEE", department: "RRHH", center: "Madrid", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-03", dayName: "Martes", type: "Consulta Médica", typeKey: "medica", startTime: "09:30", endTime: "10:15", minutes: 45, limitMinutes: 120, excessMinutes: 0, status: "Justificada", notes: "Justificante médico entregado a RRHH" },
+
+    // Bilbao (Barbara, David, Elena)
+    { id: 111, employeeId: 8, employeeName: "Barbara Test", employeeRole: "MANAGER", department: "Finanzas", center: "Bilbao", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "11:00", endTime: "11:15", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa reglamentaria" },
+    { id: 112, employeeId: 11, employeeName: "Elena Test", employeeRole: "EMPLOYEE", department: "Finanzas", center: "Bilbao", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:30", endTime: "10:45", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa de café" },
+    { id: 113, employeeId: 11, employeeName: "Elena Test", employeeRole: "EMPLOYEE", department: "Finanzas", center: "Bilbao", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-03", dayName: "Martes", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "13:45", endTime: "14:45", minutes: 60, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Comida" },
+    { id: 114, employeeId: 11, employeeName: "Elena Test", employeeRole: "EMPLOYEE", department: "Finanzas", center: "Bilbao", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-02", dayName: "Lunes", type: "Café / Desayuno", typeKey: "cafe", startTime: "11:15", endTime: "11:35", minutes: 20, limitMinutes: 15, excessMinutes: 5, status: "Exceso +5 min", notes: "Incidencia técnica en cafetera" },
+    { id: 115, employeeId: 9, employeeName: "David Test", employeeRole: "EMPLOYEE", department: "Finanzas", center: "Bilbao", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-03", dayName: "Martes", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:00", endTime: "10:15", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Descanso" },
+
+    // Sevilla (Gabriel, Marc, Hector)
+    { id: 116, employeeId: 12, employeeName: "Gabriel Test", employeeRole: "MANAGER", department: "Logistica", center: "Sevilla", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "14:15", endTime: "15:15", minutes: 60, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Almuerzo" },
+    { id: 117, employeeId: 16, employeeName: "Marc Test", employeeRole: "EMPLOYEE", department: "Logistica", center: "Sevilla", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Consulta Médica", typeKey: "medica", startTime: "09:00", endTime: "09:45", minutes: 45, limitMinutes: 120, excessMinutes: 0, status: "Justificada", notes: "Cita médica programada" },
+
+    // Valencia (Ingrid, Silvia, Luiggi)
+    { id: 118, employeeId: 14, employeeName: "Ingrid Test", employeeRole: "MANAGER", department: "Marketing", center: "Valencia", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-04", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:30", endTime: "10:45", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa café" },
+    { id: 119, employeeId: 20, employeeName: "Silvia Test", employeeRole: "EMPLOYEE", department: "Marketing", center: "Valencia", week: 45, weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)", date: "2026-11-03", dayName: "Martes", type: "Café / Desayuno", typeKey: "cafe", startTime: "11:00", endTime: "11:25", minutes: 25, limitMinutes: 15, excessMinutes: 10, status: "Exceso +10 min", notes: "Reunión informal de departamento" },
+
+    // --- SEMANA 44 (26/10/2026 - 01/11/2026) ---
+    { id: 120, employeeId: 1, employeeName: "Hassan Test", employeeRole: "ADMIN", department: "Tecnologia", center: "Barcelona", week: 44, weekLabel: "Semana 44 (26/10/2026 - 01/11/2026)", date: "2026-10-30", dayName: "Viernes", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "14:00", endTime: "15:00", minutes: 60, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Comida" },
+    { id: 121, employeeId: 1, employeeName: "Hassan Test", employeeRole: "ADMIN", department: "Tecnologia", center: "Barcelona", week: 44, weekLabel: "Semana 44 (26/10/2026 - 01/11/2026)", date: "2026-10-29", dayName: "Jueves", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:30", endTime: "10:45", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa reglamentaria" },
+    { id: 122, employeeId: 1, employeeName: "Hassan Test", employeeRole: "ADMIN", department: "Tecnologia", center: "Barcelona", week: 44, weekLabel: "Semana 44 (26/10/2026 - 01/11/2026)", date: "2026-10-28", dayName: "Miércoles", type: "Café / Desayuno", typeKey: "cafe", startTime: "11:00", endTime: "11:15", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa reglamentaria" },
+    
+    { id: 123, employeeId: 2, employeeName: "Albert G. Test", employeeRole: "MANAGER", department: "Operaciones", center: "Barcelona", week: 44, weekLabel: "Semana 44 (26/10/2026 - 01/11/2026)", date: "2026-10-30", dayName: "Viernes", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:30", endTime: "10:45", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa de café" },
+    { id: 124, employeeId: 11, employeeName: "Elena Test", employeeRole: "EMPLOYEE", department: "Finanzas", center: "Bilbao", week: 44, weekLabel: "Semana 44 (26/10/2026 - 01/11/2026)", date: "2026-10-30", dayName: "Viernes", type: "Café / Desayuno", typeKey: "cafe", startTime: "10:30", endTime: "10:45", minutes: 15, limitMinutes: 15, excessMinutes: 0, status: "Reglamentaria", notes: "Pausa semanal" },
+    { id: 125, employeeId: 11, employeeName: "Elena Test", employeeRole: "EMPLOYEE", department: "Finanzas", center: "Bilbao", week: 44, weekLabel: "Semana 44 (26/10/2026 - 01/11/2026)", date: "2026-10-29", dayName: "Jueves", type: "Almuerzo / Comida", typeKey: "almuerzo", startTime: "14:00", endTime: "15:00", minutes: 60, limitMinutes: 60, excessMinutes: 0, status: "Reglamentaria", notes: "Almuerzo" }
+  ];
+}
+
+// Inicializa o recupera el almacén de pausas
+function getBreaksStore() {
+  if (AppState.recordedBreaks && AppState.recordedBreaks.length > 5) {
+    return AppState.recordedBreaks;
+  }
+  const stored = (typeof localStorage !== "undefined") ? localStorage.getItem("tt_dynamic_breaks_v3") : null;
+  if (stored) {
+    try {
+      AppState.recordedBreaks = JSON.parse(stored);
+      return AppState.recordedBreaks;
+    } catch(e) {}
+  }
+  AppState.recordedBreaks = getInitialBreaksData();
+  saveBreaksStore();
+  return AppState.recordedBreaks;
+}
+
+function saveBreaksStore() {
+  if (typeof localStorage !== "undefined" && AppState.recordedBreaks) {
+    localStorage.setItem("tt_dynamic_breaks_v3", JSON.stringify(AppState.recordedBreaks));
+  }
+}
+
+// Configura las pestañas RBAC y los eventos de filtros
+function setupBreaksUI() {
+  const user = AppState.currentUser || { id: 1, name: "Hassan Test", role: "ADMIN", centroTrabajo: "Barcelona" };
+  const userRole = (user.role || user.rol || "EMPLOYEE").toUpperCase();
+
+  const btnMy = document.getElementById("btn-pausas-context-my");
+  const btnTeam = document.getElementById("btn-pausas-context-team");
+  const btnAll = document.getElementById("btn-pausas-context-all");
+  const selCenter = document.getElementById("sel-pausas-center");
+
+  // Control RBAC estricto de visibilidad de pestañas
+  if (btnTeam) {
+    btnTeam.style.display = (userRole === "MANAGER" || userRole === "ADMIN") ? "inline-flex" : "none";
+  }
+  if (btnAll) {
+    btnAll.style.display = (userRole === "ADMIN") ? "inline-flex" : "none";
+  }
+
+  // Si es empleado, asegurar que el contexto sea "my"
+  if (userRole === "EMPLOYEE") {
+    AppState.currentBreaksContext = "my";
+  }
+
+  // Actualizar estado activo en los botones de contexto
+  [btnMy, btnTeam, btnAll].forEach(btn => {
+    if (btn) btn.classList.remove("active");
+  });
+  if (AppState.currentBreaksContext === "my" && btnMy) btnMy.classList.add("active");
+  else if (AppState.currentBreaksContext === "team" && btnTeam) btnTeam.classList.add("active");
+  else if (AppState.currentBreaksContext === "all" && btnAll) btnAll.classList.add("active");
+
+  // El filtro de centro solo es relevante para Mi Equipo o Toda la Organización
+  if (selCenter) {
+    selCenter.style.display = (AppState.currentBreaksContext !== "my" && userRole !== "EMPLOYEE") ? "inline-block" : "none";
+  }
+
+  if (!AppState.breaksListenersAttached) {
+    AppState.breaksListenersAttached = true;
+
+    btnMy?.addEventListener("click", () => {
+      AppState.currentBreaksContext = "my";
+      setupBreaksUI();
+      renderDynamicBreaks();
+    });
+
+    btnTeam?.addEventListener("click", () => {
+      AppState.currentBreaksContext = "team";
+      setupBreaksUI();
+      renderDynamicBreaks();
+    });
+
+    btnAll?.addEventListener("click", () => {
+      AppState.currentBreaksContext = "all";
+      setupBreaksUI();
+      renderDynamicBreaks();
+    });
+
+    // Filtros interactivos
+    document.getElementById("inp-pausas-search")?.addEventListener("input", renderDynamicBreaks);
+    document.getElementById("sel-pausas-week")?.addEventListener("change", renderDynamicBreaks);
+    document.getElementById("sel-pausas-type")?.addEventListener("change", renderDynamicBreaks);
+    document.getElementById("sel-pausas-center")?.addEventListener("change", renderDynamicBreaks);
+    document.getElementById("sel-pausas-status")?.addEventListener("change", renderDynamicBreaks);
+
+    // Botón de exportación a CSV
+    document.getElementById("btn-export-pausas-csv")?.addEventListener("click", exportBreaksCSV);
+  }
+}
+
+// Función principal de filtrado y renderizado
 async function loadBreaksData() {
+  setupBreaksUI();
+  renderDynamicBreaks();
+}
+
+function renderDynamicBreaks() {
   const tbody = document.getElementById("tbody-pausas-table");
+  const tfoot = document.getElementById("tfoot-pausas-table");
   if (!tbody) return;
 
-  if (!AppState.recordedBreaks || AppState.recordedBreaks.length === 0) {
-    AppState.recordedBreaks = [
-      { id: 1, employeeName: "Hassan Adraou", center: "Barcelona", type: "Café / Descanso", start: "10:30", end: "10:45", minutes: 15, excessMinutes: 0, status: "Dentro de límite" },
-      { id: 2, employeeName: "Alba G. Test", center: "Madrid", type: "Almuerzo / Comida", start: "14:00", end: "15:00", minutes: 60, excessMinutes: 0, status: "Dentro de límite" },
-      { id: 3, employeeName: "Elena Sanchez", center: "Bilbao", type: "Café / Descanso", start: "11:15", end: "11:35", minutes: 20, excessMinutes: 5, status: "Exceso +5 min" },
-      { id: 4, employeeName: "Marc Test", center: "Barcelona", type: "Consulta Médica", start: "09:30", end: "10:15", minutes: 45, excessMinutes: 0, status: "Justificada" },
-      { id: 5, employeeName: "Javier Fernandez", center: "Sevilla", type: "Café / Descanso", start: "11:00", end: "11:25", minutes: 25, excessMinutes: 10, status: "Exceso +10 min" }
-    ];
+  const user = AppState.currentUser || { id: 1, name: "Hassan Test", role: "ADMIN", centroTrabajo: "Barcelona", department: "Tecnologia" };
+  const userRole = (user.role || user.rol || "EMPLOYEE").toUpperCase();
+  const userCenter = user.centroTrabajo || "Barcelona";
+  const userDept = user.department || user.departamento || "Tecnologia";
+  const userFirstName = (user.name || "Hassan").split(" ")[0].toLowerCase();
+
+  const allBreaks = getBreaksStore();
+
+  // 1. FILTRADO POR CONTEXTO RBAC (Empleado -> Mi historial, Manager -> Mi Equipo, Admin -> Todo)
+  let filtered = allBreaks.filter(b => {
+    if (AppState.currentBreaksContext === "my" || userRole === "EMPLOYEE") {
+      return (b.employeeId === user.id) || 
+             (b.employeeName && b.employeeName.toLowerCase().includes(userFirstName));
+    } else if (AppState.currentBreaksContext === "team") {
+      if (userRole === "MANAGER") {
+        return (b.center === userCenter) || (b.department === userDept);
+      } else {
+        // Si es Admin en "Mi Equipo", mostramos el equipo de su sede principal (Barcelona)
+        return (b.center === "Barcelona");
+      }
+    } else {
+      // "all" -> Toda la organización (solo ADMIN)
+      return true;
+    }
+  });
+
+  // 2. FILTROS INTERACTIVOS DE LA BARRA
+  const searchVal = (document.getElementById("inp-pausas-search")?.value || "").trim().toLowerCase();
+  if (searchVal) {
+    filtered = filtered.filter(b => 
+      b.employeeName.toLowerCase().includes(searchVal) ||
+      b.type.toLowerCase().includes(searchVal) ||
+      (b.notes && b.notes.toLowerCase().includes(searchVal)) ||
+      (b.center && b.center.toLowerCase().includes(searchVal))
+    );
   }
 
-  const isCa = AppState.language === "ca";
-  const totalExcess = AppState.recordedBreaks.reduce((sum, b) => sum + (b.excessMinutes || 0), 0);
+  const weekVal = document.getElementById("sel-pausas-week")?.value || "all";
+  if (weekVal !== "all") {
+    filtered = filtered.filter(b => String(b.week) === weekVal);
+  }
+
+  const typeVal = document.getElementById("sel-pausas-type")?.value || "all";
+  if (typeVal !== "all") {
+    filtered = filtered.filter(b => b.typeKey === typeVal);
+  }
+
+  const centerVal = document.getElementById("sel-pausas-center")?.value || "all";
+  if (centerVal !== "all" && AppState.currentBreaksContext !== "my") {
+    filtered = filtered.filter(b => b.center === centerVal);
+  }
+
+  const statusVal = document.getElementById("sel-pausas-status")?.value || "all";
+  if (statusVal === "ok") {
+    filtered = filtered.filter(b => b.excessMinutes === 0);
+  } else if (statusVal === "excess") {
+    filtered = filtered.filter(b => b.excessMinutes > 0);
+  }
+
+  // 3. CALCULO DE TOTALES Y ACTUALIZACION DE KPIS
+  const totalCount = filtered.length;
+  const totalMinutes = filtered.reduce((acc, b) => acc + (b.minutes || 0), 0);
+  const totalHours = Math.floor(totalMinutes / 60);
+  const remainingMins = totalMinutes % 60;
+
+  const totalExcess = filtered.reduce((acc, b) => acc + (b.excessMinutes || 0), 0);
   const totalExcessHours = (totalExcess / 60).toFixed(1);
 
+  const compliancePct = totalMinutes > 0 
+    ? Math.max(0, Math.round(((totalMinutes - totalExcess) / totalMinutes) * 100)) 
+    : 100;
+
   const kpiCount = document.getElementById("kpi-pauses-count");
+  const kpiTotalTime = document.getElementById("kpi-pauses-total-time");
   const kpiExcess = document.getElementById("kpi-excess-pauses-val");
-  const kpiExcessSub = document.getElementById("kpi-excess-pauses-sub");
+  const kpiCompliance = document.getElementById("kpi-pauses-compliance");
 
-  if (kpiCount) kpiCount.textContent = AppState.recordedBreaks.length;
+  if (kpiCount) kpiCount.textContent = totalCount;
+  if (kpiTotalTime) kpiTotalTime.textContent = `${totalHours}h ${remainingMins}m (${totalMinutes} min)`;
   if (kpiExcess) {
-    kpiExcess.textContent = `${totalExcess} min (${totalExcessHours} h)`;
+    kpiExcess.textContent = totalExcess > 0 ? `+${totalExcess} min (${totalExcessHours} h)` : "0 min";
+    kpiExcess.style.color = totalExcess > 0 ? "#DC2626" : "inherit";
   }
-  if (kpiExcessSub) {
-    kpiExcessSub.textContent = isCa 
-      ? `Temps addicional computat a l'informe mensual` 
-      : `Tiempo adicional computado en reporte mensual`;
+  if (kpiCompliance) {
+    kpiCompliance.textContent = `${compliancePct}%`;
+    kpiCompliance.style.color = compliancePct >= 95 ? "#16A34A" : (compliancePct >= 80 ? "#D97706" : "#DC2626");
   }
 
-  tbody.innerHTML = AppState.recordedBreaks.map(b => {
-    const isExcess = b.excessMinutes > 0;
-    const statusClass = isExcess ? "badge-rejected" : "badge-active";
-    const statusText = isExcess 
-      ? `+${b.excessMinutes} min (${isCa ? "Excedent" : "Excedido"})` 
-      : (isCa ? "Reglamentària" : "Reglamentaria");
-
-    return `
+  // 4. ESTADO VACIO (EMPTY STATE ELEGANTE)
+  if (filtered.length === 0) {
+    tbody.innerHTML = `
       <tr>
-        <td><strong>${b.employeeName}</strong></td>
-        <td><span class="emp-center-badge">📍 ${b.center}</span></td>
-        <td><strong>${b.type}</strong></td>
-        <td>${b.start} - ${b.end}</td>
-        <td>${b.minutes} min</td>
-        <td><strong style="color: ${isExcess ? '#DC2626' : '#166534'};">${b.excessMinutes > 0 ? '+' + b.excessMinutes + ' min (' + (b.excessMinutes / 60).toFixed(2) + ' h)' : '0 min'}</strong></td>
-        <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+        <td colspan="8" style="text-align: center; padding: 48px 16px; color: var(--text-muted);">
+          <div style="font-size: 2.2rem; margin-bottom: 10px;">☕</div>
+          <strong style="font-size: 1rem; color: var(--text-main); display: block; margin-bottom: 6px;">No se han encontrado registros de pausas</strong>
+          <span style="font-size: 0.85rem;">Prueba a cambiar el filtro de semana, contexto o busca por otro término.</span>
+        </td>
       </tr>
     `;
-  }).join("");
+    if (tfoot) tfoot.innerHTML = "";
+    return;
+  }
+
+  // 5. AGRUPACION POR SEMANAS (Semana 45, Semana 44...)
+  const groups = {};
+  filtered.forEach(b => {
+    const key = b.weekLabel || `Semana ${b.week}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(b);
+  });
+
+  let htmlRows = "";
+
+  Object.keys(groups).forEach(weekTitle => {
+    const weekItems = groups[weekTitle];
+    const wTotalMin = weekItems.reduce((acc, b) => acc + (b.minutes || 0), 0);
+    const wHours = Math.floor(wTotalMin / 60);
+    const wMins = wTotalMin % 60;
+    const wExcess = weekItems.reduce((acc, b) => acc + (b.excessMinutes || 0), 0);
+
+    // Cabecera de grupo semanal elegante
+    htmlRows += `
+      <tr class="tt-table-group-header">
+        <td colspan="8">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0;">
+            <div style="display: inline-flex; align-items: center; gap: 8px;">
+              <span>📅</span>
+              <strong style="color: var(--primary-dark); font-size: 0.88rem;">${weekTitle}</strong>
+              <span class="tt-badge tt-badge-neutral" style="font-size: 0.72rem; padding: 2px 8px;">${weekItems.length} registros</span>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); display: flex; gap: 14px;">
+              <span>Tiempo semana: <strong style="color: var(--text-main);">${wHours}h ${wMins}m</strong></span>
+              <span>Minutos adicionales: <strong style="color: ${wExcess > 0 ? '#DC2626' : '#16A34A'};">${wExcess > 0 ? '+' + wExcess + ' min' : '0 min'}</strong></span>
+            </div>
+          </div>
+        </td>
+      </tr>
+    `;
+
+    weekItems.forEach(b => {
+      const isExcess = b.excessMinutes > 0;
+      const initials = (b.employeeName || "TT").split(" ").map(w => w[0]).join("").substring(0, 2).toUpperCase();
+
+      // Chip y color según tipo de pausa
+      let chipClass = "other";
+      let chipIcon = "⏱️";
+      if (b.typeKey === "cafe" || b.type.toLowerCase().includes("café")) {
+        chipClass = "cafe"; chipIcon = "☕";
+      } else if (b.typeKey === "almuerzo" || b.type.toLowerCase().includes("almuerzo") || b.type.toLowerCase().includes("comida")) {
+        chipClass = "lunch"; chipIcon = "🍽️";
+      } else if (b.typeKey === "medica" || b.type.toLowerCase().includes("médica") || b.type.toLowerCase().includes("medica")) {
+        chipClass = "medical"; chipIcon = "🩺";
+      }
+
+      // Badge de estado de conformidad
+      let statusBadge = "";
+      if (b.typeKey === "medica") {
+        statusBadge = '<span class="tt-badge tt-badge-info">✓ Justificada</span>';
+      } else if (isExcess) {
+        statusBadge = `<span class="tt-badge tt-badge-danger">⚠ +${b.excessMinutes} min exceso</span>`;
+      } else {
+        statusBadge = '<span class="tt-badge tt-badge-success">✓ Reglamentaria</span>';
+      }
+
+      htmlRows += `
+        <tr>
+          <td>
+            <div class="pausa-emp-info">
+              <div class="pausa-emp-avatar">${initials}</div>
+              <div class="pausa-emp-text">
+                <span class="pausa-emp-name">${b.employeeName}</span>
+                <span class="pausa-emp-role">${b.department || "General"} · ${b.employeeRole || "Empleado"}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class="emp-center-badge">📍 ${b.center || "Barcelona"}</span>
+          </td>
+          <td>
+            <span class="break-type-chip ${chipClass}">
+              <span>${chipIcon}</span>
+              <span>${b.type}</span>
+            </span>
+            ${b.notes ? `<div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${b.notes}">${b.notes}</div>` : ''}
+          </td>
+          <td>
+            <div style="font-weight: 600; font-size: 0.85rem;">${b.date}</div>
+            <div style="font-size: 0.76rem; color: var(--text-muted);">${b.dayName} · <span style="font-family: monospace;">${b.startTime} - ${b.endTime}</span></div>
+          </td>
+          <td>
+            <strong style="font-size: 0.9rem;">${b.minutes} min</strong>
+          </td>
+          <td>
+            <span style="color: var(--text-muted); font-size: 0.82rem;">${b.limitMinutes} min max</span>
+          </td>
+          <td>
+            ${isExcess 
+              ? `<span class="tt-badge tt-badge-warning" style="color: #DC2626; font-weight: 700;">+${b.excessMinutes} min (${(b.excessMinutes / 60).toFixed(2)} h)</span>`
+              : '<span class="tt-badge tt-badge-success">0 min</span>'}
+          </td>
+          <td>
+            ${statusBadge}
+          </td>
+        </tr>
+      `;
+    });
+  });
+
+  tbody.innerHTML = htmlRows;
+
+  // 6. PIE DE TABLA CON TOTALES ACUMULADOS
+  if (tfoot) {
+    tfoot.innerHTML = `
+      <tr style="background: var(--bg-page); font-weight: 700; border-top: 2px solid var(--border-color);">
+        <td colspan="4" style="padding: 14px 16px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span>📊</span>
+            <span>Total Acumulado (${totalCount} pausas en el período seleccionado)</span>
+          </div>
+        </td>
+        <td style="padding: 14px 16px;">
+          <strong style="color: var(--primary); font-size: 0.95rem;">${totalHours}h ${remainingMins}m</strong>
+        </td>
+        <td style="padding: 14px 16px; color: var(--text-muted); font-size: 0.82rem;">--</td>
+        <td style="padding: 14px 16px;">
+          <strong style="color: ${totalExcess > 0 ? '#DC2626' : '#16A34A'}; font-size: 0.95rem;">
+            ${totalExcess > 0 ? '+' + totalExcess + ' min (' + totalExcessHours + ' h)' : '0 min'}
+          </strong>
+        </td>
+        <td style="padding: 14px 16px;">
+          <span class="tt-badge ${compliancePct >= 95 ? 'tt-badge-success' : 'tt-badge-warning'}">
+            ${compliancePct}% conforme
+          </span>
+        </td>
+      </tr>
+    `;
+  }
+}
+
+// Exportación a CSV
+function exportBreaksCSV() {
+  const store = getBreaksStore();
+  if (!store || store.length === 0) {
+    alert("No hay datos de pausas para exportar.");
+    return;
+  }
+
+  const headers = ["ID", "Empleado", "Rol", "Centro", "Departamento", "Semana", "Fecha", "Dia", "Tipo Pausa", "Inicio", "Fin", "Duracion (min)", "Limite (min)", "Minutos Adicionales", "Estado", "Observaciones"];
+  
+  const csvRows = [headers.join(";")];
+
+  store.forEach(b => {
+    const row = [
+      b.id,
+      `"${b.employeeName}"`,
+      b.employeeRole,
+      `"${b.center}"`,
+      `"${b.department || ''}"`,
+      b.week,
+      b.date,
+      b.dayName,
+      `"${b.type}"`,
+      b.startTime,
+      b.endTime,
+      b.minutes,
+      b.limitMinutes,
+      b.excessMinutes,
+      `"${b.status}"`,
+      `"${(b.notes || '').replace(/"/g, '""')}"`
+    ];
+    csvRows.push(row.join(";"));
+  });
+
+  const blob = new Blob(["\uFEFF" + csvRows.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `informe_pausas_laborales_${Date.now()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // 3. Gestion de bajas medicas y altas
@@ -3847,37 +4234,65 @@ function setupNewFeaturesListeners() {
   document.getElementById("form-manual-break")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const empSelect = document.getElementById("sel-break-emp");
-    const empName = empSelect.options[empSelect.selectedIndex]?.text || "Empleado";
+    const empName = empSelect.options[empSelect.selectedIndex]?.text || (AppState.currentUser ? AppState.currentUser.name : "Empleado");
     const breakType = document.getElementById("sel-break-type").value;
     const minutes = parseInt(document.getElementById("inp-break-minutes").value, 10);
-    const notes = document.getElementById("inp-break-notes").value;
+    const notes = document.getElementById("inp-break-notes").value || "Pausa manual registrada";
 
     let limit = 15;
-    if (breakType.includes("Almuerzo") || breakType.includes("Comida")) limit = 60;
-    else if (breakType.includes("Consulta")) limit = 120;
+    let typeKey = "cafe";
+    if (breakType.includes("Almuerzo") || breakType.includes("Comida")) {
+      limit = 60;
+      typeKey = "almuerzo";
+    } else if (breakType.includes("Consulta")) {
+      limit = 120;
+      typeKey = "medica";
+    } else if (breakType.includes("Asuntos") || breakType.includes("PRL")) {
+      limit = 30;
+      typeKey = "asuntos";
+    }
 
     const excess = Math.max(0, minutes - limit);
     const excessHours = (excess / 60).toFixed(2);
 
     const now = new Date();
+    const dateStr = now.toISOString().split("T")[0];
     const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const dayNames = ["Domingo", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"];
+    const dayName = dayNames[now.getDay()];
 
-    AppState.recordedBreaks.unshift({
+    const empObj = AppState.currentUser || { id: 1, name: empName, role: "EMPLOYEE", centroTrabajo: "Barcelona", department: "General" };
+
+    const newRecord = {
       id: Date.now(),
+      employeeId: empObj.id || 1,
       employeeName: empName,
-      center: "Sede Asignada",
+      employeeRole: empObj.role || "EMPLOYEE",
+      department: empObj.department || "General",
+      center: empObj.centroTrabajo || "Barcelona",
+      week: 45,
+      weekLabel: "Semana 45 (02/11/2026 - 08/11/2026)",
+      date: dateStr,
+      dayName: dayName,
       type: breakType,
-      start: timeStr,
-      end: timeStr,
+      typeKey: typeKey,
+      startTime: timeStr,
+      endTime: timeStr,
       minutes: minutes,
+      limitMinutes: limit,
       excessMinutes: excess,
-      status: excess > 0 ? `Exceso +${excess} min` : "Correcta"
-    });
+      status: excess > 0 ? `Exceso +${excess} min` : (typeKey === 'medica' ? "Justificada" : "Reglamentaria"),
+      notes: notes
+    };
+
+    const store = getBreaksStore();
+    store.unshift(newRecord);
+    saveBreaksStore();
 
     if (excess > 0) {
-      alert(`Has consumido ${minutes} minutos de pausa (${breakType}). Has superado el tiempo establecido en +${excess} minutos (${excessHours} h adicionales), que se incluirán en tu registro y reporte mensual.`);
+      alert(`⚠️ Registro de Pausa:\nHas consumido ${minutes} minutos de pausa (${breakType}).\nSupera el tiempo legal en +${excess} minutos (${excessHours} h adicionales), que se incluirán en el cómputo de reporte mensual.`);
     } else {
-      alert(`Pausa de ${minutes} minutos registrada correctamente dentro del límite establecido.`);
+      alert(`✓ Pausa de ${minutes} minutos registrada correctamente dentro del límite establecido.`);
     }
 
     document.getElementById("modal-manual-break").style.display = "none";

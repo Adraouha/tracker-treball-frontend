@@ -872,19 +872,24 @@
           <div class="employees-top-bar">
             <div>
               <h1 class="emp-page-title">Control de Pausas y Descansos</h1>
-              <p class="emp-page-sub">Monitorización de tiempos de café, almuerzo, descansos de convenio y cómputo de minutos adicionales.</p>
+              <p class="emp-page-sub">Monitorización dinámica de tiempos de café, almuerzo, descansos de convenio y cómputo de minutos adicionales por empleado y semana.</p>
             </div>
-            <button id="btn-open-manual-break" class="btn-clean btn-clean-primary" type="button">
-              <span>+ Registrar Pausa Manual</span>
-            </button>
+            <div style="display: flex; gap: 10px;">
+              <button id="btn-export-pausas-csv" class="btn-clean btn-clean-outline" type="button" title="Exportar historial de pausas a archivo CSV">
+                <span>📥 Descargar CSV</span>
+              </button>
+              <button id="btn-open-manual-break" class="btn-clean btn-clean-primary" type="button">
+                <span>+ Registrar Pausa Manual</span>
+              </button>
+            </div>
           </div>
 
           <div class="emp-kpi-grid">
             <div class="emp-kpi-card">
               <div>
-                <div class="emp-kpi-label">Pausas registradas hoy</div>
-                <div class="emp-kpi-number" id="kpi-pauses-count">19</div>
-                <div class="emp-kpi-note green">Cumplimiento del descanso del 95%</div>
+                <div class="emp-kpi-label">Pausas en el Período</div>
+                <div class="emp-kpi-number" id="kpi-pauses-count">0</div>
+                <div class="emp-kpi-note green" id="kpi-pauses-sub-note">Cumplimiento del descanso del 96%</div>
               </div>
               <div class="emp-kpi-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -898,8 +903,8 @@
 
             <div class="emp-kpi-card">
               <div>
-                <div class="emp-kpi-label">Duración media de descanso</div>
-                <div class="emp-kpi-number">15 min</div>
+                <div class="emp-kpi-label">Tiempo Total de Pausas</div>
+                <div class="emp-kpi-number" id="kpi-pauses-total-time">0 min</div>
                 <div class="emp-kpi-note green">Alineado con el convenio colectivo</div>
               </div>
               <div class="emp-kpi-icon">
@@ -912,9 +917,9 @@
 
             <div class="emp-kpi-card">
               <div>
-                <div class="emp-kpi-label">Tiempo adicional consumido</div>
-                <div class="emp-kpi-number" id="kpi-excess-pauses-val">0 min (0.0 h)</div>
-                <div class="emp-kpi-note" id="kpi-excess-pauses-sub">Exceso de pausas sobre el límite</div>
+                <div class="emp-kpi-label">Minutos Adicionales (Excesos)</div>
+                <div class="emp-kpi-number" id="kpi-excess-pauses-val">0 min</div>
+                <div class="emp-kpi-note" id="kpi-excess-pauses-sub">Exceso de pausas sobre el límite legal</div>
               </div>
               <div class="emp-kpi-icon">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -924,29 +929,91 @@
                 </svg>
               </div>
             </div>
+
+            <div class="emp-kpi-card">
+              <div>
+                <div class="emp-kpi-label">Conformidad Reglamentaria</div>
+                <div class="emp-kpi-number" id="kpi-pauses-compliance">100%</div>
+                <div class="emp-kpi-note green">Protocolo de descansos pantallas PVD</div>
+              </div>
+              <div class="emp-kpi-icon">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+              </div>
+            </div>
           </div>
 
-          <div class="emp-tabs-row" style="margin-top: 18px; margin-bottom: 16px;">
+          <!-- Pestañas de Contexto de Usuario (RBAC) -->
+          <div class="emp-tabs-row" style="margin-top: 18px; margin-bottom: 14px;">
             <button id="btn-pausas-context-my" class="emp-tab-pill active" type="button">Mis Pausas (Historial Semanal)</button>
-            <button id="btn-pausas-context-team" class="emp-tab-pill rbac-manager-up" type="button">Mi Equipo</button>
-            <button id="btn-pausas-context-all" class="emp-tab-pill rbac-admin-only" type="button">Toda la Organización</button>
+            <button id="btn-pausas-context-team" class="emp-tab-pill rbac-manager-up" type="button" style="display: none;">Mi Equipo</button>
+            <button id="btn-pausas-context-all" class="emp-tab-pill rbac-admin-only" type="button" style="display: none;">Toda la Organización</button>
           </div>
-          <div class="employees-table-card" style="margin-top: 20px;">
-            <table class="employees-table">
+
+          <!-- Barra de Filtros Interactivos -->
+          <div class="pausas-filter-bar">
+            <div class="pausas-search-wrap">
+              <svg class="pausas-search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input id="inp-pausas-search" class="pausas-search-input" type="text" placeholder="Buscar por empleado, motivo o notas...">
+            </div>
+
+            <select id="sel-pausas-week" class="pausas-select">
+              <option value="all">Todas las semanas</option>
+              <option value="45" selected>Semana 45 (02/11 - 08/11/2026)</option>
+              <option value="44">Semana 44 (26/10 - 01/11/2026)</option>
+            </select>
+
+            <select id="sel-pausas-type" class="pausas-select">
+              <option value="all">Todos los tipos</option>
+              <option value="cafe">☕ Café / Desayuno (15 min)</option>
+              <option value="almuerzo">🍽️ Almuerzo / Comida (60 min)</option>
+              <option value="medica">🩺 Consulta Médica</option>
+              <option value="asuntos">📋 Asuntos Propios / PRL</option>
+            </select>
+
+            <select id="sel-pausas-center" class="pausas-select" style="display: none;">
+              <option value="all">Todos los centros</option>
+              <option value="Barcelona">📍 Barcelona</option>
+              <option value="Madrid">📍 Madrid</option>
+              <option value="Bilbao">📍 Bilbao</option>
+              <option value="Sevilla">📍 Sevilla</option>
+              <option value="Valencia">📍 Valencia</option>
+              <option value="Extranjero">📍 Extranjero</option>
+            </select>
+
+            <select id="sel-pausas-status" class="pausas-select">
+              <option value="all">Todos los estados</option>
+              <option value="ok">✓ Reglamentarias (Sin exceso)</option>
+              <option value="excess">⚠ Con Minutos Adicionales</option>
+            </select>
+          </div>
+
+          <!-- Contenedor Unificado de Tablas Base -->
+          <div class="tt-table-container">
+            <table class="tt-table" id="table-pausas">
               <thead>
                 <tr>
                   <th>Empleado</th>
                   <th>Centro</th>
                   <th>Tipo de Pausa</th>
-                  <th>Horario</th>
-                  <th>Duración</th>
+                  <th>Fecha y Horario</th>
+                  <th>Duración Real</th>
+                  <th>Límite Estipulado</th>
                   <th>Minutos Adicionales</th>
-                  <th>Estado</th>
+                  <th>Estado / Cómputo</th>
                 </tr>
               </thead>
               <tbody id="tbody-pausas-table">
-                <!-- Se pobla dinamicamente -->
+                <!-- Se pobla dinamicamente con agrupaciones semanales -->
               </tbody>
+              <tfoot id="tfoot-pausas-table">
+                <!-- Sumatorios calculados dinámicamente -->
+              </tfoot>
             </table>
           </div>
         </section>
@@ -2195,8 +2262,8 @@
     </div>
   </div>
 
-  <script src="js/api.js?v=20261104_login_v7"></script>
-  <script src="js/app.js?v=20261104_login_v7"></script>
+  <script src="js/api.js?v=20261104_pausas_v8"></script>
+  <script src="js/app.js?v=20261104_pausas_v8"></script>
 
   <!-- MODAL: REGISTRAR PAUSA MANUAL -->
   <div id="modal-manual-break" class="modal-overlay" style="display: none;">
