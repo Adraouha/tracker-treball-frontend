@@ -2002,16 +2002,152 @@ async function loadWeatherAndTraffic() {
   updateDashboardGreeting();
 }
 
+// -----------------------------------------------------------------------------
+// NORMALIZACION Y GESTION DE FESTIVOS LABORALES OFICIALES
+// -----------------------------------------------------------------------------
+function normalizeHoliday(h, center) {
+  const dateStr = h.fecha || h.date || "";
+  let nameStr = h.nombre || h.localName || h.name || "Festivo Oficial";
+
+  // Limpieza defensiva de caracteres corruptos heredados
+  nameStr = nameStr
+    .replace(/A\?\?o/g, "Año")
+    .replace(/Ao/g, "Año")
+    .replace(/Epifan\?\?a/g, "Epifanía")
+    .replace(/Se\?\?or/g, "Señor")
+    .replace(/Asunci\?\?n/g, "Asunción")
+    .replace(/Espa\?\?a/g, "España")
+    .replace(/Espaa/g, "España")
+    .replace(/Constituci\?\?n/g, "Constitución")
+    .replace(/Inmaculada Concepci\?\?n/g, "Inmaculada Concepción")
+    .replace(/La Merc\?\?/g, "La Mercè")
+    .replace(/D\?\?a/g, "Día")
+    .replace(/San Jos\?\?/g, "San José")
+    .replace(/F\?\?te/g, "Fête");
+
+  const tipo = (h.tipo || h.scope || "NACIONAL").toUpperCase();
+  const isCa = AppState.language === "ca";
+
+  let scope = isCa ? "Nacional" : "Nacional";
+  let scopeCode = "ES";
+  let scopeClass = "holiday-scope-nacional";
+
+  if (tipo.includes("AUTO") || tipo.includes("CATALU") || tipo.includes("MADRID") || tipo.includes("EUSKADI") || tipo.includes("ANDALUC") || tipo.includes("VALENC")) {
+    scope = (center && (isCa ? (center.comunidadCa || center.comunidad) : (center.comunidad || center.comunidadCa))) || (isCa ? "Autonòmic" : "Autonómico");
+    scopeCode = (center && center.id === 1) ? "ES-CT" : ((center && center.id === 2) ? "ES-MD" : ((center && center.id === 3) ? "ES-PV" : ((center && center.id === 4) ? "ES-AN" : ((center && center.id === 5) ? "ES-VC" : "ES-CCAA"))));
+    scopeClass = "holiday-scope-cat";
+  } else if (tipo.includes("LOCAL") || tipo.includes("MUNICIP")) {
+    scope = (center && center.ciudad) || "Local";
+    scopeCode = (center && center.ciudad) ? center.ciudad.substring(0, 3).toUpperCase() : "LOC";
+    scopeClass = "holiday-scope-vic";
+  }
+
+  return {
+    ...h,
+    id: h.id,
+    fecha: dateStr,
+    date: dateStr,
+    nombre: nameStr,
+    localName: nameStr,
+    tipo: tipo,
+    scope: scope,
+    scopeCode: scopeCode,
+    scopeClass: scopeClass,
+    ano: h.ano || 2026
+  };
+}
+
+function getFallbackHolidays(center) {
+  const cId = center ? center.id : 1;
+  const common = [
+    { fecha: "2026-01-01", nombre: "Año Nuevo", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-01-06", nombre: "Epifanía del Señor / Reyes Magos", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-04-03", nombre: "Viernes Santo", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-05-01", nombre: "Fiesta del Trabajo", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-08-15", nombre: "Asunción de la Virgen", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-10-12", nombre: "Fiesta Nacional de España", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-11-01", nombre: "Todos los Santos", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-12-06", nombre: "Día de la Constitución Española", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-12-08", nombre: "Inmaculada Concepción", tipo: "NACIONAL", ano: 2026 },
+    { fecha: "2026-12-25", nombre: "Natividad del Señor / Navidad", tipo: "NACIONAL", ano: 2026 }
+  ];
+
+  if (cId === 1) { // Barcelona
+    return [
+      ...common,
+      { fecha: "2026-04-06", nombre: "Lunes de Pascua", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-06-24", nombre: "Sant Joan", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-09-11", nombre: "Diada Nacional de Catalunya", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-09-24", nombre: "La Mercè (Fiesta Mayor)", tipo: "LOCAL", ano: 2026 },
+      { fecha: "2026-12-26", nombre: "Sant Esteve", tipo: "AUTONOMICO", ano: 2026 }
+    ];
+  } else if (cId === 2) { // Madrid
+    return [
+      ...common,
+      { fecha: "2026-05-02", nombre: "Fiesta de la Comunidad de Madrid", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-05-15", nombre: "San Isidro Labrador", tipo: "LOCAL", ano: 2026 },
+      { fecha: "2026-11-09", nombre: "Nuestra Señora de la Almudena", tipo: "LOCAL", ano: 2026 }
+    ];
+  } else if (cId === 3) { // Bilbao
+    return [
+      ...common,
+      { fecha: "2026-04-06", nombre: "Lunes de Pascua", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-07-25", nombre: "Santiago Apóstol", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-08-28", nombre: "Viernes de la Semana Grande", tipo: "LOCAL", ano: 2026 }
+    ];
+  } else if (cId === 4) { // Sevilla
+    return [
+      ...common,
+      { fecha: "2026-02-28", nombre: "Día de Andalucía", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-04-22", nombre: "Miércoles de Feria de Abril", tipo: "LOCAL", ano: 2026 },
+      { fecha: "2026-06-04", nombre: "Corpus Christi", tipo: "LOCAL", ano: 2026 }
+    ];
+  } else if (cId === 5) { // Valencia
+    return [
+      ...common,
+      { fecha: "2026-03-19", nombre: "San José / Fallas", tipo: "AUTONOMICO", ano: 2026 },
+      { fecha: "2026-04-13", nombre: "San Vicente Ferrer", tipo: "LOCAL", ano: 2026 },
+      { fecha: "2026-10-09", nombre: "Día de la Comunitat Valenciana", tipo: "AUTONOMICO", ano: 2026 }
+    ];
+  } else { // Extranjero / Paris
+    return [
+      { fecha: "2026-01-01", nombre: "Jour de l'An", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-04-06", nombre: "Lundi de Pâques", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-05-01", nombre: "Fête du Travail", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-05-08", nombre: "Victoire 1945", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-05-14", nombre: "Ascension", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-05-25", nombre: "Lundi de Pentecôte", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-07-14", nombre: "Fête Nationale / Bastille Day", tipo: "LOCAL", ano: 2026 },
+      { fecha: "2026-08-15", nombre: "Assomption", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-11-01", nombre: "Toussaint", tipo: "NACIONAL", ano: 2026 },
+      { fecha: "2026-11-11", nombre: "Armistice 1918", tipo: "LOCAL", ano: 2026 },
+      { fecha: "2026-12-25", nombre: "Noël", tipo: "NACIONAL", ano: 2026 }
+    ];
+  }
+}
+
 // Carga Festivos Oficiales segun el Centro de Trabajo
 async function loadHolidaysData() {
   const center = getUserWorkCenter();
   try {
-    const list = await apiGet(`/work-centers/${center.id}/holidays`) || [];
-    AppState.holidaysList = list;
+    let list = await apiGet(`/work-centers/${center.id}/holidays?ano=2026`);
+    if (!Array.isArray(list) || list.length === 0) {
+      list = await apiGet(`/work-centers/${center.id}/holidays`);
+    }
+
+    if (Array.isArray(list) && list.length > 0) {
+      AppState.holidaysList = list.map(h => normalizeHoliday(h, center));
+    } else {
+      AppState.holidaysList = getFallbackHolidays(center).map(h => normalizeHoliday(h, center));
+    }
+
+    // Ordenar cronológicamente por fecha
+    AppState.holidaysList.sort((a, b) => (a.fecha || a.date).localeCompare(b.fecha || b.date));
     renderHolidaysTable();
 
     const titleEl = document.getElementById("lbl-holidays-title");
     const subEl = document.getElementById("lbl-holidays-sub");
+    const srcEl = document.getElementById("lbl-holidays-source");
     const isCa = AppState.language === "ca";
 
     if (titleEl) {
@@ -2021,11 +2157,19 @@ async function loadHolidaysData() {
     }
     if (subEl) {
       subEl.textContent = isCa
-        ? `Sincronitzats automàticament per a ${center.comunidadCa} i l'àmbit de ${center.ciudad}.`
+        ? `Sincronitzats automàticament per a ${center.comunidadCa || center.comunidad} i l'àmbit de ${center.ciudad}.`
         : `Sincronizados automáticamente para ${center.comunidad} y el ámbito de ${center.ciudad}.`;
+    }
+    if (srcEl) {
+      srcEl.textContent = isCa
+        ? `Font: Calendari Laboral Oficial · ${center.nombre}`
+        : `Fuente: Calendario Laboral Oficial · ${center.nombre}`;
     }
   } catch (err) {
     console.error("Error cargando festivos de centro:", err);
+    AppState.holidaysList = getFallbackHolidays(center).map(h => normalizeHoliday(h, center));
+    AppState.holidaysList.sort((a, b) => (a.fecha || a.date).localeCompare(b.fecha || b.date));
+    renderHolidaysTable();
   }
 }
 
@@ -2037,22 +2181,36 @@ function renderHolidaysTable() {
     return;
   }
 
+  const isCa = AppState.language === 'ca';
   tbody.innerHTML = AppState.holidaysList.map(h => {
-    let scopeClass = "holiday-scope-nacional";
-    if (h.scopeCode === "ES-CT") scopeClass = "holiday-scope-cat";
-    else if (h.scopeCode === "VIC") scopeClass = "holiday-scope-vic";
+    const dateStr = h.fecha || h.date;
+    const nameStr = h.nombre || h.localName;
+    const scopeStr = h.scope || (h.tipo === "NACIONAL" ? "Nacional" : (h.tipo === "AUTONOMICO" ? (isCa ? "Autonòmic" : "Autonómico") : "Local"));
+    const scopeCodeStr = h.scopeCode || (h.tipo === "NACIONAL" ? "ES" : "LOC");
+    const scopeClass = h.scopeClass || (scopeCodeStr === "ES" ? "holiday-scope-nacional" : (scopeCodeStr === "ES-CT" ? "holiday-scope-cat" : "holiday-scope-vic"));
 
-    const dateFormatted = new Date(h.date).toLocaleDateString(AppState.language === 'ca' ? 'ca-ES' : 'es-ES', {
-      weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
-    });
+    let dateFormatted = dateStr;
+    try {
+      if (dateStr) {
+        const parts = dateStr.split('-');
+        if (parts.length === 3) {
+          const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+          dateFormatted = d.toLocaleDateString(isCa ? 'ca-ES' : 'es-ES', {
+            weekday: 'short', day: 'numeric', month: 'long', year: 'numeric'
+          });
+        }
+      }
+    } catch (e) {
+      console.warn("Error formateando fecha festivo:", e);
+    }
 
     return `
       <tr>
-        <td><strong>${h.date}</strong> <span style="font-size: 0.78rem; color: var(--text-muted); display: block;">${dateFormatted}</span></td>
-        <td><strong>${h.localName}</strong></td>
-        <td><span class="holiday-scope-badge ${scopeClass}">${h.scope}</span></td>
-        <td><code>${h.scopeCode}</code></td>
-        <td style="text-align: right;"><span class="status-pill badge-rejected" style="font-size: 0.74rem;">No laborable</span></td>
+        <td><strong>${dateStr}</strong> <span style="font-size: 0.78rem; color: var(--text-muted); display: block; text-transform: capitalize;">${dateFormatted}</span></td>
+        <td><strong>${nameStr}</strong></td>
+        <td><span class="holiday-scope-badge ${scopeClass}">${scopeStr}</span></td>
+        <td><code>${scopeCodeStr}</code></td>
+        <td style="text-align: right;"><span class="status-pill badge-rejected" style="font-size: 0.74rem;">${isCa ? "No laborable" : "No laborable"}</span></td>
       </tr>
     `;
   }).join("");
@@ -2068,8 +2226,12 @@ function calculateWorkingDays(startStr, endStr) {
   const cur = new Date(start);
   while (cur <= end) {
     const dayOfWeek = cur.getDay(); // 0: Dom, 6: Sab
-    const isoDate = cur.toISOString().split('T')[0];
-    const isHoliday = AppState.holidaysList.some(h => h.date === isoDate);
+    const year = cur.getFullYear();
+    const month = String(cur.getMonth() + 1).padStart(2, '0');
+    const day = String(cur.getDate()).padStart(2, '0');
+    const isoDate = `${year}-${month}-${day}`;
+
+    const isHoliday = AppState.holidaysList.some(h => (h.fecha === isoDate || h.date === isoDate));
     if (dayOfWeek !== 0 && dayOfWeek !== 6 && !isHoliday) {
       count++;
     }
